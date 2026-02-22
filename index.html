@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apuesta al 90 — Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap');
+
+    :root {
+      --fire1:#ff2200; --fire2:#ff6600; --fire3:#ffaa00;
+      --gold:#ffd700; --card:rgba(12,7,2,0.88); --border:rgba(255,150,0,0.22);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+    /* FIRE BG */
+    #bg{position:fixed;inset:0;z-index:0;
+      background:radial-gradient(ellipse at 50% 115%,#ff4400 0%,#bb1a00 28%,#1a0500 65%,#000 100%);}
+    #sparks{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+    /* HEADER */
+    header{position:relative;z-index:10;text-align:center;padding:26px 16px 14px;}
+    .jornada-badge{
+      display:inline-block;font-family:'Bebas Neue',cursive;
+      font-size:clamp(13px,2.5vw,17px);letter-spacing:4px;color:var(--gold);
+      background:rgba(255,120,0,0.13);border:1px solid rgba(255,180,0,0.28);
+      border-radius:4px;padding:4px 20px;margin-bottom:14px;
+    }
+
+    /* QUINIELA BUTTON */
+    .btn-quiniela{
+      display:inline-flex;align-items:center;gap:10px;text-decoration:none;
+      font-family:'Bebas Neue',cursive;font-size:clamp(16px,3.5vw,22px);letter-spacing:2px;
+      color:#000;background:linear-gradient(135deg,var(--fire1) 0%,var(--fire2) 45%,var(--gold) 100%);
+      border:none;border-radius:8px;padding:12px 32px;cursor:pointer;
+      position:relative;overflow:hidden;box-shadow:0 0 24px rgba(255,100,0,0.5);
+      margin-top:8px;transition:transform .2s,box-shadow .2s;
+    }
+    .btn-quiniela::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+      transform:translateX(-100%);transition:transform .5s;
+    }
+    .btn-quiniela:hover{transform:scale(1.04);box-shadow:0 0 36px rgba(255,150,0,.7);}
+    .btn-quiniela:hover::after{transform:translateX(100%);}
+    .btn-arrow{animation:parrow 1s ease-in-out infinite alternate;}
+    @keyframes parrow{from{transform:translateX(0)}to{transform:translateX(5px)}}
+
+    /* TABS WRAPPER */
+    .tabs-wrap{position:relative;z-index:10;max-width:1200px;margin:22px auto 0;padding:0 12px;}
+    .tabs-nav{
+      display:flex;gap:3px;
+      background:rgba(0,0,0,0.55);
+      border:1px solid var(--border);border-bottom:none;
+      border-radius:12px 12px 0 0;padding:6px 6px 0;overflow-x:auto;
+    }
+    .tab-btn{
+      font-family:'Bebas Neue',cursive;font-size:clamp(14px,2.8vw,20px);
+      letter-spacing:2px;color:rgba(255,200,100,.5);background:transparent;
+      border:none;border-bottom:3px solid transparent;
+      padding:10px 24px 8px;cursor:pointer;white-space:nowrap;
+      transition:color .2s,border-color .2s,background .2s;
+    }
+    .tab-btn:hover{color:var(--gold);}
+    .tab-btn.active{
+      color:var(--gold);border-bottom-color:var(--fire2);
+      background:rgba(255,100,0,.13);border-radius:8px 8px 0 0;
+    }
+    .tabs-body{
+      position:relative;z-index:10;max-width:1200px;margin:0 auto;
+      padding:0 14px 44px;
+      background:rgba(0,0,0,.48);border:1px solid var(--border);
+      border-top:none;border-radius:0 0 12px 12px;min-height:320px;
+    }
+    .tab-panel{display:none;padding-top:22px;}
+    .tab-panel.active{display:block;}
+
+    /* SECTION TITLE */
+    .sec-title{
+      font-family:'Bebas Neue',cursive;font-size:clamp(18px,4vw,26px);
+      letter-spacing:3px;color:var(--gold);
+      border-left:4px solid var(--fire2);padding-left:12px;margin-bottom:18px;
+    }
+
+    /* ===================== PARTIDOS ===================== */
+    .partidos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+    .match-card{
+      background:var(--card);border:1px solid var(--border);border-radius:10px;
+      padding:14px 16px;position:relative;overflow:hidden;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .match-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,100,0,.22);}
+    .match-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,transparent,var(--fire2),transparent);
+    }
+    .match-status{
+      font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;
+      text-align:center;padding:3px 10px;border-radius:20px;margin-bottom:12px;
+      width:fit-content;margin-left:auto;margin-right:auto;
+    }
+    .status-live{background:rgba(255,30,30,.2);color:#ff4444;border:1px solid #ff4444;animation:blink 1s infinite;}
+    .status-final{background:rgba(100,100,100,.2);color:#aaa;border:1px solid #555;}
+    .status-pending{background:rgba(255,180,0,.1);color:var(--gold);border:1px solid rgba(255,180,0,.3);}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    .teams-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .team-side{flex:1;text-align:center;}
+    .team-logo{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));margin-bottom:6px;}
+    .team-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.75);line-height:1.2;}
+    .score-box{font-family:'Bebas Neue',cursive;font-size:38px;color:#fff;text-shadow:0 0 20px rgba(255,150,0,.5);letter-spacing:4px;text-align:center;}
+    .score-sep{color:rgba(255,150,0,.5);}
+    .match-time{text-align:center;font-size:11px;color:rgba(255,255,255,.4);margin-top:8px;}
+
+    /* ===================== RANKING ===================== */
+    .ranking-table{width:100%;border-collapse:collapse;}
+    .ranking-table th{
+      font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:2px;
+      color:rgba(255,180,0,.7);text-align:left;padding:8px 10px;
+      border-bottom:1px solid var(--border);
+    }
+    .ranking-table th.center{text-align:center;}
+    .ranking-row{
+      border-bottom:1px solid rgba(255,150,0,.08);
+      transition:background .2s;cursor:pointer;
+    }
+    .ranking-row:hover{background:rgba(255,100,0,.07);}
+    .ranking-row td{padding:10px 10px;vertical-align:middle;}
+    .rank-pos{
+      font-family:'Bebas Neue',cursive;font-size:22px;
+      color:rgba(255,200,100,.5);width:36px;text-align:center;
+    }
+    .rank-pos.top1{color:#ffd700;}
+    .rank-pos.top2{color:#c0c0c0;}
+    .rank-pos.top3{color:#cd7f32;}
+    .rank-medal{font-size:20px;}
+    .rank-name{font-size:16px;font-weight:700;color:#fff;}
+    .rank-pts{
+      font-family:'Bebas Neue',cursive;font-size:26px;color:var(--gold);
+      text-align:center;
+    }
+    .rank-stats{text-align:center;font-size:12px;color:rgba(255,255,255,.5);}
+    .rank-bar-wrap{margin-top:4px;background:rgba(255,255,255,.07);border-radius:4px;height:4px;min-width:60px;}
+    .rank-bar{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--fire2),var(--gold));}
+
+    /* PARTIDOS QUINIELA (detalle ranking) */
+    .rank-detail{display:none;padding:0 10px 14px 52px;}
+    .rank-detail.open{display:block;}
+    .detail-title{
+      font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:2px;
+      color:rgba(255,180,0,.6);margin-bottom:8px;
+    }
+    .detail-matches{display:flex;flex-wrap:wrap;gap:8px;}
+    .dm-card{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,150,0,.12);
+      border-radius:8px;padding:8px 12px;min-width:160px;flex:1;max-width:220px;
+    }
+    .dm-teams{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:4px;}
+    .dm-pred{font-size:13px;font-weight:700;
+      display:flex;align-items:center;gap:6px;
+    }
+    .dm-result{font-size:11px;color:rgba(255,255,255,.4);}
+    .acierto{color:#4dff8a;}
+    .error{color:#ff4d4d;}
+    .pendiente{color:rgba(255,180,0,.6);}
+    .badge-acierto{background:rgba(77,255,138,.15);color:#4dff8a;border:1px solid rgba(77,255,138,.3);border-radius:4px;font-size:10px;padding:1px 6px;font-family:'Bebas Neue',cursive;letter-spacing:1px;}
+    .badge-error{background:rgba(255,77,77,.15);color:#ff4d4d;border:1px solid rgba(255,77,77,.3);border-radius:4px;font-size:10px;padding:1px 6px;font-family:'Bebas Neue',cursive;letter-spacing:1px;}
+    .badge-pend{background:rgba(255,180,0,.1);color:rgba(255,200,100,.7);border:1px solid rgba(255,180,0,.2);border-radius:4px;font-size:10px;padding:1px 6px;font-family:'Bebas Neue',cursive;letter-spacing:1px;}
+
+    /* ===================== TABLA POSICIONES ===================== */
+    .tabla-pos{width:100%;border-collapse:collapse;}
+    .tabla-pos th{
+      font-family:'Bebas Neue',cursive;font-size:12px;letter-spacing:2px;
+      color:rgba(255,180,0,.7);padding:8px 8px;border-bottom:1px solid var(--border);
+      text-align:center;
+    }
+    .tabla-pos th:first-child{text-align:left;}
+    .tabla-pos td{padding:8px 8px;border-bottom:1px solid rgba(255,150,0,.06);text-align:center;font-size:13px;}
+    .tabla-pos td:nth-child(2){text-align:left;}
+    .tabla-pos tr:hover td{background:rgba(255,100,0,.06);}
+    .eq-logo-sm{width:24px;height:24px;object-fit:contain;vertical-align:middle;margin-right:6px;}
+    .eq-name{font-size:13px;font-weight:700;vertical-align:middle;}
+    .pos-num{font-family:'Bebas Neue',cursive;font-size:16px;color:rgba(255,200,100,.6);}
+    .pts-bold{font-family:'Bebas Neue',cursive;font-size:18px;color:var(--gold);}
+    .zona-liguilla td:first-child{border-left:3px solid #4dff8a;}
+    .zona-repesca td:first-child{border-left:3px solid var(--gold);}
+    .zona-descenso td:first-child{border-left:3px solid #ff4d4d;}
+    .tabla-leyenda{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:12px;}
+    .leyenda-item{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.55);}
+    .leyenda-dot{width:10px;height:10px;border-radius:2px;}
+
+    /* LOADING / EMPTY */
+    .loading-msg{
+      text-align:center;padding:48px 20px;
+      font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:3px;
+      color:rgba(255,180,0,.4);
+    }
+    .spin{display:inline-block;animation:spin 1s linear infinite;margin-right:8px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* LAST UPDATE */
+    .last-update{
+      text-align:right;font-size:11px;color:rgba(255,255,255,.25);
+      padding-top:10px;letter-spacing:1px;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:600px){
+      .partidos-grid{grid-template-columns:1fr;}
+      .dm-card{max-width:100%;}
+      .ranking-table th:not(:nth-child(-n+4)){display:none;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="sparks"></canvas>
+
+<header>
+  <div class="jornada-badge" id="jornada-label">⚽ JORNADA —</div><br/>
+  <a href="https://forms.gle/e1aDvu2CxwoWG7wy7" target="_blank" class="btn-quiniela">
+    ⚽ Registra tu Quiniela <span class="btn-arrow">→</span>
+  </a>
+</header>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="showTab('partidos',this)">⚽ Partidos</button>
+    <button class="tab-btn" onclick="showTab('ranking',this)">🏆 Ranking</button>
+    <button class="tab-btn" onclick="showTab('tabla',this)">📊 Tabla de Posiciones</button>
+  </nav>
+</div>
+
+<div class="tabs-body">
+
+  <!-- ============ TAB PARTIDOS ============ -->
+  <div class="tab-panel active" id="tab-partidos">
+    <div class="sec-title">⚽ PARTIDOS — JORNADA ACTUAL</div>
+    <div class="partidos-grid" id="partidos-container">
+      <div class="loading-msg"><span class="spin">🔥</span> CARGANDO PARTIDOS...</div>
+    </div>
+    <div class="last-update" id="lu-partidos"></div>
+  </div>
+
+  <!-- ============ TAB RANKING ============ -->
+  <div class="tab-panel" id="tab-ranking">
+    <div class="sec-title">🏆 RANKING DE QUINIELAS</div>
+    <div id="ranking-container">
+      <div class="loading-msg"><span class="spin">🔥</span> CARGANDO RANKING...</div>
+    </div>
+    <div class="last-update" id="lu-ranking"></div>
+  </div>
+
+  <!-- ============ TAB TABLA ============ -->
+  <div class="tab-panel" id="tab-tabla">
+    <div class="sec-title">📊 TABLA DE POSICIONES — LIGA MX</div>
+    <div id="tabla-container">
+      <div class="loading-msg"><span class="spin">🔥</span> CARGANDO TABLA...</div>
+    </div>
+    <div class="last-update" id="lu-tabla"></div>
+  </div>
+
+</div>
+
+<script>
+// =============================================
+// CONFIG
+// =============================================
+const FB_URL    = 'https://apuesta-al-90-15300-default-rtdb.firebaseio.com';
+const FB_SECRET = 'p3yH8WCVejRXspNg3oIo6uRDr4A2jH8yRuY9RNMc';
+
+// =============================================
+// TABS
+// =============================================
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =============================================
+// FIREBASE FETCH
+// =============================================
+async function fbGet(path) {
+  const r = await fetch(`${FB_URL}/${path}.json?auth=${FB_SECRET}`);
+  if (!r.ok) throw new Error('Firebase error: ' + r.status);
+  return r.json();
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function tsNow() {
+  return new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function statusClass(estado) {
+  if (!estado) return 'status-pending';
+  const e = estado.toLowerCase();
+  if (e === 'in' || e === 'live' || e.includes('progres') || e.includes('vivo')) return 'status-live';
+  if (e === 'post' || e === 'final' || e.includes('final')) return 'status-final';
+  return 'status-pending';
+}
+function statusLabel(estado) {
+  if (!estado) return '🕐 PRÓXIMO';
+  const e = estado.toLowerCase();
+  if (e === 'in' || e === 'live' || e.includes('progres') || e.includes('vivo')) return '🔴 EN VIVO';
+  if (e === 'post' || e === 'final' || e.includes('final')) return '✅ FINAL';
+  return '🕐 PRÓXIMO';
+}
+function safeLogo(url, alt) {
+  return `<img class="team-logo" src="${url||''}" alt="${alt||''}" onerror="this.style.opacity='0.2'">`;
+}
+
+// =============================================
+// RENDER PARTIDOS
+// =============================================
+function renderPartidos(partidos) {
+  const cont = document.getElementById('partidos-container');
+  if (!partidos || Object.keys(partidos).length === 0) {
+    cont.innerHTML = '<div class="loading-msg">Sin partidos registrados</div>';
+    return;
+  }
+
+  // Ordenar: live > final > pending
+  const order = {'in':0,'live':0,'post':2,'final':2,'pre':1};
+  const arr = Object.entries(partidos).map(([id, p]) => ({id, ...p}));
+  arr.sort((a,b) => {
+    const ea = (a.estado||'pre').toLowerCase();
+    const eb = (b.estado||'pre').toLowerCase();
+    const oa = order[ea] ?? 1;
+    const ob = order[eb] ?? 1;
+    if (oa !== ob) return oa - ob;
+    return (a.hora||'').localeCompare(b.hora||'');
+  });
+
+  cont.innerHTML = arr.map(p => {
+    const sc = statusClass(p.estado);
+    const sl = statusLabel(p.estado);
+    const gL = (p.golesL !== undefined && p.golesL !== null) ? p.golesL : (p.goles_local ?? '–');
+    const gV = (p.golesV !== undefined && p.golesV !== null) ? p.golesV : (p.goles_visita ?? '–');
+    const isLive = sc === 'status-live';
+    const isFinal = sc === 'status-final';
+    return `
+    <div class="match-card">
+      <div class="match-status ${sc}">${sl}</div>
+      <div class="teams-row">
+        <div class="team-side">
+          ${safeLogo(p.logoL || p.logo_local, p.local)}
+          <div class="team-name">${p.local || p.equipo_local || '—'}</div>
+        </div>
+        <div>
+          <div class="score-box">
+            ${(isLive || isFinal) ? `${gL} <span class="score-sep">:</span> ${gV}` : `<span style="font-size:22px;opacity:.4">vs</span>`}
+          </div>
+        </div>
+        <div class="team-side">
+          ${safeLogo(p.logoV || p.logo_visita, p.visita)}
+          <div class="team-name">${p.visita || p.equipo_visita || '—'}</div>
+        </div>
+      </div>
+      <div class="match-time">${p.fecha || ''} ${p.hora ? '· ' + p.hora : ''}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('lu-partidos').textContent = 'Actualizado: ' + tsNow();
+}
+
+// =============================================
+// RENDER RANKING — con detalle por partido
+// =============================================
+function renderRanking(rankingData, partidos) {
+  const cont = document.getElementById('ranking-container');
+  if (!rankingData || Object.keys(rankingData).length === 0) {
+    cont.innerHTML = '<div class="loading-msg">Sin datos de ranking</div>';
+    return;
+  }
+
+  // Convertir a array y ordenar por puntos desc, luego aciertos desc
+  let arr = Object.entries(rankingData).map(([key, r]) => ({key, ...r}));
+  arr.sort((a, b) => {
+    const pa = a.puntos ?? a.pts ?? a.puntaje ?? 0;
+    const pb = b.puntos ?? b.pts ?? b.puntaje ?? 0;
+    if (pb !== pa) return pb - pa;
+    const aa = a.aciertos ?? a.correctos ?? 0;
+    const ab = b.aciertos ?? b.correctos ?? 0;
+    return ab - aa;
+  });
+
+  const maxPts = Math.max(...arr.map(r => r.puntos ?? r.pts ?? r.puntaje ?? 0), 1);
+  const medals = ['🥇', '🥈', '🥉'];
+
+  // Construir mapa de resultados reales por partido
+  const resultadosReales = {};
+  if (partidos) {
+    Object.entries(partidos).forEach(([id, p]) => {
+      const gL = p.golesL ?? p.goles_local;
+      const gV = p.golesV ?? p.goles_visita;
+      let res = null;
+      if (gL !== undefined && gL !== null && gV !== undefined && gV !== null) {
+        if (p.estado === 'post' || p.estado === 'final' || (p.estado||'').toLowerCase().includes('final')) {
+          if (Number(gL) > Number(gV)) res = 'L';
+          else if (Number(gV) > Number(gL)) res = 'V';
+          else res = 'E';
+        }
+      }
+      const nombreL = p.local || p.equipo_local || '?';
+      const nombreV = p.visita || p.equipo_visita || '?';
+      resultadosReales[id] = {
+        local: nombreL, visita: nombreV,
+        gL, gV, res,
+        estado: p.estado
+      };
+    });
+  }
+
+  cont.innerHTML = `
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th style="width:44px" class="center">#</th>
+          <th>Participante</th>
+          <th class="center">Pts</th>
+          <th class="center">✅</th>
+          <th class="center">❌</th>
+          <th class="center" style="min-width:80px">Progreso</th>
+        </tr>
+      </thead>
+      <tbody id="ranking-tbody"></tbody>
+    </table>`;
+
+  const tbody = document.getElementById('ranking-tbody');
+  let html = '';
+
+  arr.forEach((r, i) => {
+    const pos = i + 1;
+    const pts = r.puntos ?? r.pts ?? r.puntaje ?? 0;
+    const aciertos = r.aciertos ?? r.correctos ?? 0;
+    const errores = r.errores ?? r.incorrectos ?? 0;
+    const nombre = r.nombre || r.name || r.participante || r.key;
+    const pct = Math.round((pts / maxPts) * 100);
+
+    const posClass = pos === 1 ? 'top1' : pos === 2 ? 'top2' : pos === 3 ? 'top3' : '';
+    const medal = medals[i] || '';
+
+    // Construir detalle de partidos del participante
+    let detailHtml = '';
+    const quiniela = r.quiniela || r.predicciones || r.picks || {};
+    const hasQuiniela = Object.keys(quiniela).length > 0;
+
+    if (hasQuiniela) {
+      const cards = Object.entries(quiniela).map(([matchId, pred]) => {
+        const real = resultadosReales[matchId] || {};
+        const predVal = typeof pred === 'object' ? (pred.resultado || pred.res || pred.pick || '') : pred;
+        
+        let badge = `<span class="badge-pend">PEND</span>`;
+        let predClass = 'pendiente';
+        
+        if (real.res) {
+          if (predVal === real.res) {
+            badge = `<span class="badge-acierto">✓ ACIERTO</span>`;
+            predClass = 'acierto';
+          } else {
+            badge = `<span class="badge-error">✗ ERROR</span>`;
+            predClass = 'error';
+          }
+        }
+        
+        const predLabel = predVal === 'L' ? 'Local' : predVal === 'V' ? 'Visita' : predVal === 'E' ? 'Empate' : (predVal || '?');
+        const realLabel = real.res ? (real.res === 'L' ? 'Local' : real.res === 'V' ? 'Visita' : 'Empate') : '';
+        
+        return `
+          <div class="dm-card">
+            <div class="dm-teams">${real.local || matchId} vs ${real.visita || ''}</div>
+            <div class="dm-pred ${predClass}">
+              <span>Pred: ${predLabel}</span> ${badge}
+            </div>
+            ${real.res ? `<div class="dm-result">Real: ${realLabel} (${real.gL}-${real.gV})</div>` : ''}
+          </div>`;
+      }).join('');
+      
+      detailHtml = `
+        <tr>
+          <td colspan="6" style="padding:0">
+            <div class="rank-detail" id="detail-${i}">
+              <div class="detail-title">PREDICCIONES DE LA JORNADA</div>
+              <div class="detail-matches">${cards}</div>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    html += `
+      <tr class="ranking-row" onclick="toggleDetail(${i})" title="Click para ver predicciones">
+        <td><div class="rank-pos ${posClass}">${medal || pos}</div></td>
+        <td>
+          <div class="rank-name">${nombre}</div>
+          ${hasQuiniela ? '<div style="font-size:10px;color:rgba(255,200,100,.4);margin-top:2px;">▼ click para detalle</div>' : ''}
+        </td>
+        <td><div class="rank-pts">${pts}</div></td>
+        <td><div class="rank-stats" style="color:#4dff8a;font-size:15px;font-weight:700;">${aciertos}</div></td>
+        <td><div class="rank-stats" style="color:#ff4d4d;font-size:15px;font-weight:700;">${errores}</div></td>
+        <td>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar" style="width:${pct}%"></div>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:2px;">${pct}%</div>
+        </td>
+      </tr>
+      ${detailHtml}`;
+  });
+
+  tbody.innerHTML = html;
+  document.getElementById('lu-ranking').textContent = 'Actualizado: ' + tsNow();
+}
+
+function toggleDetail(i) {
+  const el = document.getElementById('detail-' + i);
+  if (el) el.classList.toggle('open');
+}
+
+// =============================================
+// RENDER TABLA POSICIONES
+// =============================================
+function renderTabla(tablaData) {
+  const cont = document.getElementById('tabla-container');
+  if (!tablaData || Object.keys(tablaData).length === 0) {
+    cont.innerHTML = '<div class="loading-msg">Sin datos de tabla de posiciones.<br><span style="font-size:14px;opacity:.6">Ejecuta ACTUALIZAR_TABLA_POSICIONES en Apps Script.</span></div>';
+    return;
+  }
+
+  const arr = Object.entries(tablaData).map(([k, e]) => ({...e}));
+  arr.sort((a, b) => {
+    const pa = a.puntos ?? a.pts ?? 0;
+    const pb = b.puntos ?? b.pts ?? 0;
+    if (pb !== pa) return pb - pa;
+    const gdA = (a.goles_favor ?? a.gf ?? 0) - (a.goles_contra ?? a.gc ?? 0);
+    const gdB = (b.goles_favor ?? b.gf ?? 0) - (b.goles_contra ?? b.gc ?? 0);
+    return gdB - gdA;
+  });
+
+  let rows = arr.map((e, i) => {
+    const pos = i + 1;
+    let zonaClass = '';
+    if (pos <= 8) zonaClass = 'zona-liguilla';
+    else if (pos <= 12) zonaClass = 'zona-repesca';
+    else if (pos >= arr.length - 2) zonaClass = 'zona-descenso';
+    
+    const pts = e.puntos ?? e.pts ?? 0;
+    const pj  = e.pj ?? e.jugados ?? 0;
+    const g   = e.g ?? e.ganados ?? e.wins ?? 0;
+    const emp = e.e ?? e.empates ?? e.ties ?? 0;
+    const p   = e.p ?? e.perdidos ?? e.losses ?? 0;
+    const gf  = e.goles_favor ?? e.gf ?? 0;
+    const gc  = e.goles_contra ?? e.gc ?? 0;
+    const dif = gf - gc;
+
+    return `
+      <tr class="${zonaClass}">
+        <td><span class="pos-num">${pos}</span></td>
+        <td>
+          ${e.logo ? `<img class="eq-logo-sm" src="${e.logo}" onerror="this.style.display='none'" alt="">` : ''}
+          <span class="eq-name">${e.equipo || e.nombre || '—'}</span>
+        </td>
+        <td>${pj}</td>
+        <td style="color:#4dff8a">${g}</td>
+        <td style="color:rgba(255,255,255,.5)">${emp}</td>
+        <td style="color:#ff4d4d">${p}</td>
+        <td>${gf}</td>
+        <td>${gc}</td>
+        <td style="color:${dif>0?'#4dff8a':dif<0?'#ff4d4d':'rgba(255,255,255,.5)'}">${dif>0?'+':''}${dif}</td>
+        <td><span class="pts-bold">${pts}</span></td>
+      </tr>`;
+  }).join('');
+
+  cont.innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="tabla-pos">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th style="text-align:left">Equipo</th>
+            <th>PJ</th>
+            <th>G</th>
+            <th>E</th>
+            <th>P</th>
+            <th>GF</th>
+            <th>GC</th>
+            <th>DIF</th>
+            <th>PTS</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="tabla-leyenda">
+      <div class="leyenda-item"><div class="leyenda-dot" style="background:#4dff8a"></div>Liguilla (Top 8)</div>
+      <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--gold)"></div>Repesca (9-12)</div>
+      <div class="leyenda-item"><div class="leyenda-dot" style="background:#ff4d4d"></div>Descenso</div>
+    </div>`;
+
+  document.getElementById('lu-tabla').textContent = 'Actualizado: ' + tsNow();
+}
+
+// =============================================
+// MAIN LOAD
+// =============================================
+let _partidos = {};
+let _ranking = {};
+let _tabla = {};
+
+async function loadAll() {
+  try {
+    // Jornada label
+    try {
+      const jNum = await fbGet('jornada_numero');
+      if (jNum) document.getElementById('jornada-label').textContent = `⚽ JORNADA ${jNum}`;
+    } catch(e) {}
+
+    // Partidos
+    try {
+      const data = await fbGet('jornada_actual');
+      _partidos = data || {};
+      renderPartidos(_partidos);
+    } catch(e) {
+      document.getElementById('partidos-container').innerHTML =
+        '<div class="loading-msg">Error cargando partidos</div>';
+    }
+
+    // Ranking
+    try {
+      const data = await fbGet('ranking');
+      _ranking = data || {};
+      renderRanking(_ranking, _partidos);
+    } catch(e) {
+      document.getElementById('ranking-container').innerHTML =
+        '<div class="loading-msg">Error cargando ranking</div>';
+    }
+
+    // Tabla posiciones
+    try {
+      const data = await fbGet('tabla_posiciones');
+      _tabla = data || {};
+      renderTabla(_tabla);
+    } catch(e) {
+      document.getElementById('tabla-container').innerHTML =
+        '<div class="loading-msg">Sin tabla de posiciones aún</div>';
+    }
+
+  } catch(e) {
+    console.error('Error general:', e);
+  }
+}
+
+// =============================================
+// SPARKS ANIMATION
+// =============================================
+(function initSparks() {
+  const canvas = document.getElementById('sparks');
+  const ctx = canvas.getContext('2d');
+  let W, H, sparks = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+  function spawn() {
+    sparks.push({
+      x: randBetween(0, W),
+      y: H + 10,
+      vx: randBetween(-0.6, 0.6),
+      vy: randBetween(-2.5, -0.8),
+      life: 1,
+      decay: randBetween(0.004, 0.012),
+      r: randBetween(1, 3),
+      hue: randBetween(10, 45)
+    });
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    if (Math.random() < 0.45) spawn();
+    sparks = sparks.filter(s => s.life > 0);
+    sparks.forEach(s => {
+      s.x += s.vx + Math.sin(Date.now() * 0.001 + s.y) * 0.3;
+      s.y += s.vy;
+      s.vy *= 0.998;
+      s.life -= s.decay;
+      ctx.save();
+      ctx.globalAlpha = s.life * 0.85;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${s.hue},100%,65%)`;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = `hsl(${s.hue},100%,65%)`;
+      ctx.fill();
+      ctx.restore();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// =============================================
+// INIT + AUTO REFRESH 60s
+// =============================================
+loadAll();
+setInterval(loadAll, 60000);
+</script>
+</body>
+</html>
