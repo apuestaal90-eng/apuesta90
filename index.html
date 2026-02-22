@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apuesta al 90 — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire1: #ff2200;
+    --fire2: #ff6600;
+    --fire3: #ffaa00;
+    --gold: #ffd000;
+    --dark: #0a0604;
+    --dark2: #150b04;
+    --card: rgba(20,10,4,0.82);
+    --border: rgba(255,160,0,0.28);
+    --glow: 0 0 24px rgba(255,100,0,0.35);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--dark);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: #fff;
+  }
+
+  /* ── FONDO FUEGO ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 110%, #ff440044 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 100%, #ff220033 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, #ff880022 0%, transparent 60%),
+      linear-gradient(180deg, #0a0604 0%, #180800 60%, #2a0e00 100%);
+    pointer-events:none;
+  }
+
+  /* partículas */
+  .ember { position:fixed; border-radius:50%; pointer-events:none; z-index:0; animation: rise linear infinite; }
+  @keyframes rise {
+    0%   { transform:translateY(100vh) translateX(0) scale(1); opacity:.9; }
+    100% { transform:translateY(-10vh) translateX(var(--dx)) scale(.2); opacity:0; }
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto;
+    padding:20px 16px 60px;
+    display:flex; flex-direction:column; gap:28px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display:flex; align-items:center; justify-content:center; gap:16px;
+    padding:18px 0 8px;
+  }
+  header img { height:64px; filter:drop-shadow(0 0 12px #ff6600aa); }
+  .header-text h1 {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2.4rem; letter-spacing:3px;
+    background: linear-gradient(135deg,#fff 30%,var(--gold));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    line-height:1;
+  }
+  .header-text p { color:var(--fire3); font-size:.95rem; font-weight:600; letter-spacing:2px; }
+
+  /* ── SECTION TITLE ── */
+  .sec-title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:1.5rem; letter-spacing:3px;
+    color:var(--gold);
+    border-left:4px solid var(--fire2);
+    padding-left:12px;
+    margin-bottom:14px;
+    text-shadow: 0 0 18px #ff880088;
+  }
+
+  /* ── CARD BASE ── */
+  .card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    box-shadow: var(--glow), inset 0 1px 0 rgba(255,200,0,.08);
+    backdrop-filter:blur(10px);
+  }
+
+  /* ── PARTIDOS ── */
+  .partido {
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:10px;
+    padding:14px 10px;
+    border-bottom:1px solid rgba(255,140,0,.12);
+    transition:background .2s;
+  }
+  .partido:last-child { border-bottom:none; }
+  .partido:hover { background:rgba(255,100,0,.06); border-radius:10px; }
+
+  .team {
+    display:flex; align-items:center; gap:10px;
+  }
+  .team.away { flex-direction:row-reverse; }
+  .team img {
+    width:44px; height:44px; object-fit:contain;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));
+    transition:transform .2s;
+  }
+  .partido:hover .team img { transform:scale(1.08); }
+  .team-name {
+    font-weight:700; font-size:1rem; letter-spacing:.5px;
+    color:#ffe8c0;
+    max-width:110px;
+    text-align:left;
+  }
+  .team.away .team-name { text-align:right; }
+
+  .marcador {
+    display:flex; align-items:center; gap:6px;
+    background:rgba(0,0,0,.5);
+    border:1px solid rgba(255,160,0,.3);
+    border-radius:10px;
+    padding:8px 14px;
+    min-width:90px; justify-content:center;
+  }
+  .marcador .score {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:1.9rem; color:#fff;
+    letter-spacing:2px;
+    text-shadow:0 0 10px rgba(255,200,0,.5);
+  }
+  .marcador .sep {
+    color:var(--fire3); font-size:1.4rem; font-weight:700;
+    margin:0 2px;
+  }
+  .estado {
+    font-size:.65rem; letter-spacing:1px;
+    padding:2px 7px; border-radius:20px;
+    font-weight:700; margin-top:3px; display:block; text-align:center;
+  }
+  .estado.live { background:#ff2200; animation:pulse 1.2s ease-in-out infinite; }
+  .estado.final { background:rgba(255,160,0,.25); color:var(--gold); }
+  .estado.prox { background:rgba(255,255,255,.08); color:#aaa; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+
+  /* ── RANKING ── */
+  .ranking-row {
+    display:grid;
+    grid-template-columns:36px 1fr repeat(3,52px);
+    align-items:center; gap:8px;
+    padding:10px 8px;
+    border-bottom:1px solid rgba(255,140,0,.1);
+    transition:background .2s;
+  }
+  .ranking-row:last-child { border-bottom:none; }
+  .ranking-row:hover { background:rgba(255,100,0,.06); border-radius:8px; }
+  .ranking-row.top1 { background:linear-gradient(90deg,rgba(255,200,0,.12),transparent); border-radius:8px; }
+  .ranking-row.top2 { background:linear-gradient(90deg,rgba(180,180,180,.08),transparent); border-radius:8px; }
+  .ranking-row.top3 { background:linear-gradient(90deg,rgba(180,100,0,.1),transparent); border-radius:8px; }
+
+  .pos {
+    font-family:'Bebas Neue', sans-serif; font-size:1.2rem;
+    text-align:center;
+  }
+  .pos.gold { color:var(--gold); text-shadow:0 0 10px #ffcc0099; }
+  .pos.silver { color:#ccc; }
+  .pos.bronze { color:#cd7f32; }
+  .pos.normal { color:#666; }
+
+  .participante { font-weight:700; font-size:.95rem; color:#ffe8c0; }
+  .pts-col { text-align:center; font-size:.85rem; }
+  .pts-col .val { font-family:'Bebas Neue', sans-serif; font-size:1.2rem; color:#fff; }
+  .pts-col .lbl { font-size:.6rem; color:#888; display:block; letter-spacing:1px; }
+  .ranking-header {
+    display:grid;
+    grid-template-columns:36px 1fr repeat(3,52px);
+    gap:8px; padding:0 8px 10px;
+    border-bottom:1px solid rgba(255,160,0,.2);
+    margin-bottom:6px;
+  }
+  .ranking-header span { font-size:.65rem; color:#888; letter-spacing:1.5px; font-weight:700; text-transform:uppercase; }
+  .ranking-header span:not(:nth-child(2)) { text-align:center; }
+
+  /* ── TABLA POSICIONES ── */
+  .tabla-header, .tabla-row {
+    display:grid;
+    grid-template-columns:32px 1fr repeat(6,40px);
+    align-items:center; gap:6px;
+    padding:8px 6px;
+    font-size:.82rem;
+  }
+  .tabla-header {
+    border-bottom:1px solid rgba(255,160,0,.25);
+    margin-bottom:4px;
+  }
+  .tabla-header span { font-size:.62rem; color:#888; letter-spacing:1.5px; font-weight:700; text-transform:uppercase; text-align:center; }
+  .tabla-header span:nth-child(2) { text-align:left; }
+  .tabla-row { border-bottom:1px solid rgba(255,140,0,.07); transition:background .2s; }
+  .tabla-row:last-child { border-bottom:none; }
+  .tabla-row:hover { background:rgba(255,100,0,.06); border-radius:6px; }
+  .tabla-row.zona-champ { border-left:3px solid #ffd000; }
+  .tabla-row.zona-liguilla { border-left:3px solid #ff6600; }
+  .tabla-row.zona-repesca { border-left:3px solid #888; }
+  .tabla-row.zona-descenso { border-left:3px solid #ff2200; }
+
+  .tabla-pos { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:#666; text-align:center; }
+  .tabla-equipo { display:flex; align-items:center; gap:8px; }
+  .tabla-equipo img { width:24px; height:24px; object-fit:contain; }
+  .tabla-equipo span { font-weight:700; color:#ffe8c0; font-size:.85rem; }
+  .tabla-stat { text-align:center; color:#bbb; }
+  .tabla-stat.pts { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; color:#fff; }
+
+  /* ── LOADING / ERROR ── */
+  .loading {
+    text-align:center; padding:40px;
+    color:var(--fire3); font-size:1.1rem; letter-spacing:2px;
+    animation:fadePulse 1.5s ease-in-out infinite;
+  }
+  @keyframes fadePulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+  .error-msg { text-align:center; color:#ff4444; padding:20px; font-size:.9rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align:center; padding:20px 0 0;
+    color:rgba(255,160,0,.4); font-size:.75rem; letter-spacing:2px;
+  }
+  .update-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,100,0,.12); border:1px solid rgba(255,100,0,.2);
+    border-radius:20px; padding:4px 12px;
+    font-size:.7rem; letter-spacing:1.5px; color:var(--fire3);
+  }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--fire2); animation:pulse 1.5s infinite; }
+
+  /* Leyenda tabla */
+  .leyenda { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,140,0,.1); }
+  .ley-item { display:flex; align-items:center; gap:6px; font-size:.68rem; color:#888; }
+  .ley-dot { width:8px; height:8px; border-radius:2px; }
+
+  @media(max-width:600px){
+    .partido { grid-template-columns:1fr auto 1fr; gap:6px; }
+    .team img { width:36px; height:36px; }
+    .team-name { font-size:.82rem; max-width:80px; }
+    .tabla-header, .tabla-row { grid-template-columns:28px 1fr repeat(6,32px); font-size:.75rem; gap:4px; }
+    .ranking-row { grid-template-columns:32px 1fr repeat(3,44px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Partículas fuego -->
+<script>
+(function(){
+  const colors=['#ff4400','#ff8800','#ffcc00','#ff2200','#ffaa00'];
+  for(let i=0;i<22;i++){
+    const e=document.createElement('div');
+    e.className='ember';
+    const sz=Math.random()*5+2;
+    e.style.cssText=`
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --dx:${(Math.random()-0.5)*120}px;
+      animation-duration:${4+Math.random()*7}s;
+      animation-delay:${Math.random()*6}s;
+      opacity:${0.4+Math.random()*0.5};
+      filter:blur(${Math.random()>0.5?1:0}px);
+    `;
+    document.body.appendChild(e);
+  }
+})();
+</script>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <!-- Logo inline SVG tipo toro/fuego como fallback visual -->
+    <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;">
+      <svg viewBox="0 0 64 64" width="64" height="64">
+        <defs>
+          <radialGradient id="bg" cx="50%" cy="70%" r="60%">
+            <stop offset="0%" stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#cc0000"/>
+          </radialGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="url(#bg)" opacity=".9"/>
+        <text x="32" y="42" font-size="30" text-anchor="middle" fill="#fff" font-family="serif">⚽</text>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Apuesta al 90</h1>
+      <p id="jornada-label">⚡ JORNADA 7 — EN VIVO</p>
+    </div>
+  </header>
+
+  <!-- ① PARTIDOS -->
+  <section class="card">
+    <div class="sec-title">🏟 Partidos</div>
+    <div id="partidos-container"><div class="loading">Cargando partidos...</div></div>
+  </section>
+
+  <!-- ② RANKING QUINIELAS -->
+  <section class="card">
+    <div class="sec-title">🏆 Ranking Quinielas</div>
+    <div id="ranking-container"><div class="loading">Cargando ranking...</div></div>
+  </section>
+
+  <!-- ③ TABLA POSICIONES -->
+  <section class="card">
+    <div class="sec-title">📊 Tabla de Posiciones Liga MX</div>
+    <div id="tabla-container"><div class="loading">Cargando tabla...</div></div>
+  </section>
+
+  <footer>
+    <div class="update-badge"><span class="dot"></span> Actualización automática cada 60s</div>
+    <p style="margin-top:8px">Apuesta al 90 &copy; 2025</p>
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════ */
+const FIREBASE_URL    = "https://apuesta-al-90-15300-default-rtdb.firebaseio.com";
+const FIREBASE_SECRET = "p3yH8WCVejRXspNg3oIo6uRDr4A2jH8yRuY9RNMc";
+
+/* IDs ESPN correctos Liga MX */
+const ESPN_IDS = {
+  'america':        227, 'américas':      227,
+  'atlas':          216,
+  'tigres':         232, 'tigres uanl':   232,
+  'necaxa':         229,
+  'monterrey':      220, 'rayados':       220,
+  'pumas':          233, 'pumas unam':    233,
+  'queretaro':      222, 'querétaro':     222,
+  'santos':         225, 'santos laguna': 225,
+  'pachuca':        234,
+  'leon':           228, 'león':          228,
+  'puebla':         231,
+  'cruz azul':      218,
+  'guadalajara':    219, 'chivas':        219,
+  'toluca':         223,
+  'tijuana':       10125,'xolos':        10125,
+  'mazatlan':      20702,'mazatlán':     20702,
+  'atletico san luis':15720,'atlético san luis':15720,'san luis':15720,
+  'juarez':        17851,'juárez':       17851,'fc juarez':17851,'fc juárez':17851
+};
+
+function normalize(str){ return (str||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+
+function espnLogo(equipo){
+  const key = normalize(equipo);
+  // buscar match exacto o parcial
+  let id = ESPN_IDS[key];
+  if(!id){
+    for(const [k,v] of Object.entries(ESPN_IDS)){
+      if(key.includes(k)||k.includes(key)){ id=v; break; }
+    }
+  }
+  if(!id) return null;
+  return `https://a.espncdn.com/i/teamlogos/soccer/500/${id}.png`;
+}
+
+function logoImg(equipo, cls=''){
+  const url = espnLogo(equipo);
+  if(!url) return `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">⚽</div>`;
+  return `<img src="${url}" alt="${equipo}" ${cls?`class="${cls}"`:''}
+    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+    style="width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))">
+    <div style="display:none;width:44px;height:44px;align-items:center;justify-content:center;font-size:1.5rem;">⚽</div>`;
+}
+
+function logoImgSmall(equipo){
+  const url = espnLogo(equipo);
+  if(!url) return `<span>⚽</span>`;
+  return `<img src="${url}" alt="${equipo}"
+    onerror="this.outerHTML='<span>⚽</span>'"
+    style="width:24px;height:24px;object-fit:contain;">`;
+}
+
+/* ═══════════════════════════════════════════
+   FIREBASE FETCH
+═══════════════════════════════════════════ */
+async function fbGet(path){
+  const url = `${FIREBASE_URL}/${path}.json?auth=${FIREBASE_SECRET}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`Firebase error ${r.status}`);
+  return r.json();
+}
+
+/* ═══════════════════════════════════════════
+   RENDER PARTIDOS
+═══════════════════════════════════════════ */
+function renderPartidos(partidos){
+  const el = document.getElementById('partidos-container');
+  if(!partidos || Object.keys(partidos).length===0){
+    el.innerHTML='<div class="error-msg">Sin partidos disponibles</div>'; return;
+  }
+
+  const lista = Object.values(partidos).sort((a,b)=>(a.numero||0)-(b.numero||0));
+  el.innerHTML = lista.map(p=>{
+    const local   = p.local   || p.equipo_local   || 'Local';
+    const visita  = p.visita  || p.equipo_visita  || 'Visita';
+    const golL    = p.goles_local   ?? p.marcador_local   ?? '-';
+    const golV    = p.goles_visita  ?? p.marcador_visita  ?? '-';
+    const status  = (p.estado||p.status||'').toLowerCase();
+
+    let estadoHTML='';
+    if(status.includes('vivo')||status.includes('live')||status.includes('en curso')){
+      estadoHTML=`<span class="estado live">🔴 EN VIVO</span>`;
+    } else if(status.includes('final')||status.includes('terminad')){
+      estadoHTML=`<span class="estado final">FINAL</span>`;
+    } else {
+      const hora = p.hora||p.horario||'';
+      estadoHTML=`<span class="estado prox">${hora||'PRÓXIMO'}</span>`;
+    }
+
+    return `<div class="partido">
+      <div class="team">
+        ${logoImg(local)}
+        <div>
+          <div class="team-name">${local}</div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div class="marcador">
+          <span class="score">${golL}</span>
+          <span class="sep">:</span>
+          <span class="score">${golV}</span>
+        </div>
+        ${estadoHTML}
+      </div>
+      <div class="team away">
+        ${logoImg(visita)}
+        <div>
+          <div class="team-name away">${visita}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER RANKING
+═══════════════════════════════════════════ */
+function renderRanking(ranking){
+  const el = document.getElementById('ranking-container');
+  if(!ranking||Object.keys(ranking).length===0){
+    el.innerHTML='<div class="error-msg">Sin ranking disponible</div>'; return;
+  }
+
+  // Puede venir como array o como objeto
+  let lista = Array.isArray(ranking) ? ranking : Object.values(ranking);
+  lista = lista.sort((a,b)=>(b.puntos||b.pts||0)-(a.puntos||a.pts||0));
+
+  const posClass = i => i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
+  const rowClass = i => i===0?'top1':i===1?'top2':i===2?'top3':'';
+
+  el.innerHTML = `
+    <div class="ranking-header">
+      <span>#</span>
+      <span>Participante</span>
+      <span>PTS</span>
+      <span>✓</span>
+      <span>✗</span>
+    </div>
+    ${lista.map((r,i)=>{
+      const nombre  = r.nombre||r.participante||r.name||`Jugador ${i+1}`;
+      const pts     = r.puntos||r.pts||0;
+      const aciertos= r.aciertos||r.correctas||0;
+      const errores = r.errores||r.incorrectas||(9-aciertos)||0;
+      return `<div class="ranking-row ${rowClass(i)}">
+        <div class="pos ${posClass(i)}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+        <div class="participante">${nombre}</div>
+        <div class="pts-col"><span class="val">${pts}</span><span class="lbl">pts</span></div>
+        <div class="pts-col" style="color:#4ade80"><span class="val">${aciertos}</span><span class="lbl">ok</span></div>
+        <div class="pts-col" style="color:#f87171"><span class="val">${errores}</span><span class="lbl">err</span></div>
+      </div>`;
+    }).join('')}`;
+}
+
+/* ═══════════════════════════════════════════
+   RENDER TABLA POSICIONES
+═══════════════════════════════════════════ */
+function zonaClass(pos){
+  if(pos<=4)  return 'zona-champ';
+  if(pos<=8)  return 'zona-liguilla';
+  if(pos<=12) return 'zona-repesca';
+  return 'zona-descenso';
+}
+
+function renderTabla(tabla){
+  const el = document.getElementById('tabla-container');
+  if(!tabla||Object.keys(tabla).length===0){
+    el.innerHTML='<div class="error-msg">Sin tabla disponible</div>'; return;
+  }
+
+  let lista = Array.isArray(tabla) ? tabla : Object.values(tabla);
+  lista = lista.sort((a,b)=>{
+    const ptsDiff = (b.puntos||b.pts||0)-(a.puntos||a.pts||0);
+    if(ptsDiff!==0) return ptsDiff;
+    const gdA = (a.goles_favor||a.gf||0)-(a.goles_contra||a.gc||0);
+    const gdB = (b.goles_favor||b.gf||0)-(b.goles_contra||b.gc||0);
+    return gdB-gdA;
+  });
+
+  el.innerHTML = `
+    <div class="tabla-header">
+      <span>#</span>
+      <span>Equipo</span>
+      <span>PJ</span>
+      <span>G</span>
+      <span>E</span>
+      <span>P</span>
+      <span>DG</span>
+      <span>PTS</span>
+    </div>
+    ${lista.map((eq,i)=>{
+      const pos   = i+1;
+      const nombre= eq.equipo||eq.nombre||eq.team||`Equipo ${pos}`;
+      const pj    = eq.jugados||eq.pj||eq.played||0;
+      const g     = eq.ganados||eq.g||eq.wins||0;
+      const e     = eq.empates||eq.e||eq.draws||0;
+      const p     = eq.perdidos||eq.p||eq.losses||0;
+      const gf    = eq.goles_favor||eq.gf||0;
+      const gc    = eq.goles_contra||eq.gc||0;
+      const dg    = gf-gc;
+      const pts   = eq.puntos||eq.pts||0;
+      return `<div class="tabla-row ${zonaClass(pos)}">
+        <div class="tabla-pos">${pos}</div>
+        <div class="tabla-equipo">
+          ${logoImgSmall(nombre)}
+          <span>${nombre}</span>
+        </div>
+        <div class="tabla-stat">${pj}</div>
+        <div class="tabla-stat">${g}</div>
+        <div class="tabla-stat">${e}</div>
+        <div class="tabla-stat">${p}</div>
+        <div class="tabla-stat">${dg>=0?'+':''}${dg}</div>
+        <div class="tabla-stat pts">${pts}</div>
+      </div>`;
+    }).join('')}
+    <div class="leyenda">
+      <div class="ley-item"><div class="ley-dot" style="background:#ffd000"></div>Liguilla directa</div>
+      <div class="ley-item"><div class="ley-dot" style="background:#ff6600"></div>Liguilla</div>
+      <div class="ley-item"><div class="ley-dot" style="background:#888"></div>Repesca</div>
+      <div class="ley-item"><div class="ley-dot" style="background:#ff2200"></div>Zona de riesgo</div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   MAIN LOOP
+═══════════════════════════════════════════ */
+async function cargarTodo(){
+  try {
+    // Detectar jornada actual desde Firebase
+    const config = await fbGet('configuracion').catch(()=>null);
+    const jornada = config?.jornada_actual || 7;
+    document.getElementById('jornada-label').textContent = `⚡ JORNADA ${jornada} — EN VIVO`;
+
+    // Cargar en paralelo
+    const [partidos, rankingRaw, tablaRaw] = await Promise.allSettled([
+      fbGet(`jornadas/jornada_${jornada}/partidos`),
+      fbGet(`jornadas/jornada_${jornada}/ranking`).catch(()=>fbGet('ranking_general')),
+      fbGet('tabla_posiciones').catch(()=>fbGet(`jornadas/jornada_${jornada}/tabla`))
+    ]);
+
+    if(partidos.status==='fulfilled') renderPartidos(partidos.value);
+    else document.getElementById('partidos-container').innerHTML='<div class="error-msg">No se pudieron cargar los partidos</div>';
+
+    if(rankingRaw.status==='fulfilled') renderRanking(rankingRaw.value);
+    else document.getElementById('ranking-container').innerHTML='<div class="error-msg">No se pudo cargar el ranking</div>';
+
+    if(tablaRaw.status==='fulfilled') renderTabla(tablaRaw.value);
+    else document.getElementById('tabla-container').innerHTML='<div class="error-msg">No se pudo cargar la tabla</div>';
+
+  } catch(err){
+    console.error('Error cargando datos:', err);
+  }
+}
+
+// Cargar al inicio y cada 60s
+cargarTodo();
+setInterval(cargarTodo, 60000);
+</script>
+</body>
+</html>
