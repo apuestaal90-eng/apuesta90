@@ -350,6 +350,10 @@ function renderPartidos(partidos){
 }
 
 // ===== RENDER RANKING =====
+// ===== RENDER RANKING — CORREGIDO v2 =====
+// FIX 1: errores = partidos finalizados donde no acertó (no total-aciertos)
+// FIX 2: res se calcula también con status "FINALIZADO" y marcador disponible
+// FIX 3: pred.resultado funciona aunque sea undefined → muestra ? en lugar de ERROR
 function renderRanking(rankingData,partidos,quinielas){
   const cont=document.getElementById('ranking-container');
   if(!rankingData||!Object.keys(rankingData).length){cont.innerHTML='<div class="loading-msg">Sin datos de ranking</div>';return;}
@@ -357,14 +361,28 @@ function renderRanking(rankingData,partidos,quinielas){
   arr.sort((a,b)=>{const pa=a.puntos??0,pb=b.puntos??0;if(pb!==pa)return pb-pa;return (b.aciertos??0)-(a.aciertos??0);});
   const maxPts=Math.max(...arr.map(r=>r.puntos??0),1);
   const medals=['🥇','🥈','🥉'];
+
+  // Construir mapa de resultados reales por ID de partido
+  // FIX: acepta estado "post", "FINALIZADO", o status que contenga "final"
   const rr={};
   if(partidos)Object.entries(partidos).forEach(([id,p])=>{
-    const gL=p.golesL??p.goles_local,gV=p.golesV??p.goles_visita;
+    const gL=p.golesL??p.goles_local??null;
+    const gV=p.golesV??p.goles_visita??null;
+    const est=(p.estado||'').toLowerCase();
+    const sta=(p.status||'').toLowerCase();
+    // Partido finalizado = estado post, o status contiene "final", o marcador disponible y no pre
+    const finalizado = est==='post' || sta.includes('final') || sta.includes('✅') ||
+                       (gL!=null && gV!=null && est!=='pre' && est!=='');
     let res=null;
-    if(gL!=null&&gV!=null&&(p.estado==='post'||(p.estado||'').toLowerCase().includes('final')))
+    if(finalizado && gL!=null && gV!=null)
       res=Number(gL)>Number(gV)?'L':Number(gV)>Number(gL)?'V':'E';
-    rr[id]={local:p.local||p.equipo_local||'?',visita:p.visita||p.equipo_visita||'?',gL,gV,res,estado:p.estado};
+    rr[id]={
+      local:p.local||p.equipo_local||'?',
+      visita:p.visita||p.equipo_visita||'?',
+      gL,gV,res,estado:p.estado,status:p.status
+    };
   });
+
   cont.innerHTML=`<table class="ranking-table"><thead><tr>
     <th style="width:44px" class="center">#</th><th>Participante</th>
     <th class="center">Pts</th><th class="center">✅</th><th class="center">❌</th>
@@ -372,19 +390,45 @@ function renderRanking(rankingData,partidos,quinielas){
   </tr></thead><tbody id="ranking-tbody"></tbody></table>`;
   let html='';
   arr.forEach((r,i)=>{
-    const pos=i+1,pts=r.puntos??0,aciertos=r.aciertos??0,total=r.totalPredicciones??0;
-    const errores=total>0?total-aciertos:0,nombre=r.nombre||r.key||'?',pct=Math.round((pts/maxPts)*100);
+    const pos=i+1,pts=r.puntos??0,aciertos=r.aciertos??0;
+    const nombre=r.nombre||r.key||'?';
     const posClass=pos===1?'top1':pos===2?'top2':pos===3?'top3':'',medal=medals[i]||'';
     const uid=r.key,qu=(quinielas&&quinielas[uid])?quinielas[uid]:null;
     const preds=qu?(qu.predicciones||{}):{},hasPreds=Object.keys(preds).length>0;
+
+    // FIX errores: contar solo partidos finalizados donde no acertó (no total-aciertos que da 9 siempre)
+    let erroresContados=0, finalizadosContados=0;
+    if(hasPreds){
+      Object.entries(preds).forEach(([mid,pred])=>{
+        const real=rr[mid];
+        if(!real||!real.res) return; // pendiente, no contar
+        finalizadosContados++;
+        const pv=typeof pred==='object'?(pred.resultado||''):String(pred||'');
+        if(pv && pv!=='?' && pv!==real.res) erroresContados++;
+      });
+    }
+    const pct=Math.round((pts/(maxPts||1))*100);
+
     let detailHtml='';
     if(hasPreds){
+      // Ordenar: finalizados primero
       const predsArr=Object.entries(preds).sort(([idA],[idB])=>(rr[idA]?.res?0:1)-(rr[idB]?.res?0:1));
       const cards=predsArr.map(([mid,pred])=>{
-        const real=rr[mid]||{},pv=typeof pred==='object'?(pred.resultado||''):String(pred);
+        const real=rr[mid]||{};
+        // FIX: leer pred.resultado, si no existe mostrar "?" sin marcar error
+        const pv=typeof pred==='object'?(pred.resultado||''):String(pred||'');
         let badge=`<span class="badge-pend">⏳ PEND</span>`,pc='pendiente';
-        if(real.res){if(pv===real.res){badge=`<span class="badge-acierto">✓ ACIERTO</span>`;pc='acierto';}else{badge=`<span class="badge-error">✗ ERROR</span>`;pc='error';}}
-        const pl=pv==='L'?'🏠 Local':pv==='V'?'✈️ Visita':pv==='E'?'🤝 Empate':(pv||'?');
+        if(real.res){
+          if(!pv||pv==='?'){
+            // Predicción no capturada — mostrar como pendiente, no error
+            badge=`<span class="badge-pend">? SIN PRED</span>`;pc='pendiente';
+          } else if(pv===real.res){
+            badge=`<span class="badge-acierto">✓ ACIERTO</span>`;pc='acierto';
+          } else {
+            badge=`<span class="badge-error">✗ ERROR</span>`;pc='error';
+          }
+        }
+        const pl=pv==='L'?'🏠 Local':pv==='V'?'✈️ Visita':pv==='E'?'🤝 Empate':(pv?pv:'—');
         const rl=real.res?(real.res==='L'?'🏠 Local':real.res==='V'?'✈️ Visita':'🤝 Empate'):'';
         return `<div class="dm-card">
           <div class="dm-teams">${real.local||mid} vs ${real.visita||''}</div>
@@ -403,7 +447,7 @@ function renderRanking(rankingData,partidos,quinielas){
         <div style="font-size:10px;color:rgba(255,200,100,.4);margin-top:2px;">${hasPreds?'▼ ver predicciones':'Sin predicciones'}</div></td>
       <td><div class="rank-pts">${pts}</div></td>
       <td><div class="rank-stats" style="color:#4dff8a;font-size:16px;font-weight:700;">${aciertos}</div></td>
-      <td><div class="rank-stats" style="color:#ff4d4d;font-size:16px;font-weight:700;">${errores}</div></td>
+      <td><div class="rank-stats" style="color:#ff4d4d;font-size:16px;font-weight:700;">${erroresContados}</div></td>
       <td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
         <div style="font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:2px;">${pct}%</div></td>
     </tr>${detailHtml}`;
