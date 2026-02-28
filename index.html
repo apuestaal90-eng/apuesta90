@@ -95,8 +95,6 @@
     .rank-name{font-size:16px;font-weight:700;color:#fff;}
     .rank-pts{font-family:'Bebas Neue',cursive;font-size:26px;color:var(--gold);text-align:center;}
     .rank-stats{text-align:center;font-size:12px;color:rgba(255,255,255,.5);}
-    .rank-bar-wrap{margin-top:4px;background:rgba(255,255,255,.07);border-radius:4px;height:4px;min-width:60px;}
-    .rank-bar{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--fire2),var(--gold));}
     .rank-detail{display:none;padding:0 10px 14px 52px;}
     .rank-detail.open{display:block;}
     .detail-title{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:2px;color:rgba(255,180,0,.6);margin-bottom:8px;}
@@ -359,10 +357,6 @@ function renderRanking(rankingData,partidos,quinielas){
   if(!rankingData||!Object.keys(rankingData).length){cont.innerHTML='<div class="loading-msg">Sin datos de ranking</div>';return;}
   let arr=Object.entries(rankingData).map(([key,r])=>({key,...r}));
   arr.sort((a,b)=>{const pa=a.puntos??0,pb=b.puntos??0;if(pb!==pa)return pb-pa;return (b.aciertos??0)-(a.aciertos??0);});
-  // Progreso = pts / partidos finalizados (no vs el líder)
-  // Si nadie tiene puntos aún, maxPts=1 para evitar división por cero
-  const totalFinalizados=partidos?Object.values(partidos).filter(p=>{const e=(p.estado||'').toLowerCase(),s=(p.status||'').toLowerCase();return e==='post'||s.includes('final')||s.includes('✅');}).length:0;
-  const maxPts=totalFinalizados>0?totalFinalizados:Math.max(...arr.map(r=>r.puntos??0),1);
   const medals=['🥇','🥈','🥉'];
 
   // Construir mapa de resultados reales por ID de partido
@@ -389,7 +383,7 @@ function renderRanking(rankingData,partidos,quinielas){
   cont.innerHTML=`<table class="ranking-table"><thead><tr>
     <th style="width:44px" class="center">#</th><th>Participante</th>
     <th class="center">Pts</th><th class="center">✅</th><th class="center">❌</th>
-    <th class="center" style="min-width:80px">Progreso</th>
+
   </tr></thead><tbody id="ranking-tbody"></tbody></table>`;
   let html='';
   arr.forEach((r,i)=>{
@@ -410,7 +404,6 @@ function renderRanking(rankingData,partidos,quinielas){
         if(pv && pv!=='?' && pv!==real.res) erroresContados++;
       });
     }
-    const pct=Math.round((pts/(maxPts||1))*100);
 
     let detailHtml='';
     if(hasPreds){
@@ -451,8 +444,7 @@ function renderRanking(rankingData,partidos,quinielas){
       <td><div class="rank-pts">${pts}</div></td>
       <td><div class="rank-stats" style="color:#4dff8a;font-size:16px;font-weight:700;">${aciertos}</div></td>
       <td><div class="rank-stats" style="color:#ff4d4d;font-size:16px;font-weight:700;">${erroresContados}</div></td>
-      <td><div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
-        <div style="font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:2px;">${pct}%</div></td>
+
     </tr>${detailHtml}`;
   });
   document.getElementById('ranking-tbody').innerHTML=html;
