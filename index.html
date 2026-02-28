@@ -359,7 +359,10 @@ function renderRanking(rankingData,partidos,quinielas){
   if(!rankingData||!Object.keys(rankingData).length){cont.innerHTML='<div class="loading-msg">Sin datos de ranking</div>';return;}
   let arr=Object.entries(rankingData).map(([key,r])=>({key,...r}));
   arr.sort((a,b)=>{const pa=a.puntos??0,pb=b.puntos??0;if(pb!==pa)return pb-pa;return (b.aciertos??0)-(a.aciertos??0);});
-  const maxPts=Math.max(...arr.map(r=>r.puntos??0),1);
+  // Progreso = pts / partidos finalizados (no vs el líder)
+  // Si nadie tiene puntos aún, maxPts=1 para evitar división por cero
+  const totalFinalizados=partidos?Object.values(partidos).filter(p=>{const e=(p.estado||'').toLowerCase(),s=(p.status||'').toLowerCase();return e==='post'||s.includes('final')||s.includes('✅');}).length:0;
+  const maxPts=totalFinalizados>0?totalFinalizados:Math.max(...arr.map(r=>r.puntos??0),1);
   const medals=['🥇','🥈','🥉'];
 
   // Construir mapa de resultados reales por ID de partido
