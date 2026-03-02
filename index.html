@@ -777,10 +777,37 @@ const _NI = {};
 Object.entries(LOGOS_MX).forEach(([id,names]) => names.forEach(n => _NI[n] = id));
 
 function getLogo(nombre) {
-  const k = (nombre||'').toLowerCase().trim()
-    .normalize('NFD').replace(/[̀-ͯ]/g,''); // quita tildes
+  if (!nombre) return null;
+  // Normaliza: minúsculas, sin tildes, sin espacios extra
+  let k = nombre.toLowerCase().trim();
+  k = k.replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+       .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ü/g,'u');
+  // Buscar en mapa por coincidencia parcial
+  const ids = {
+    'america':262, 'chivas':269, 'guadalajara':269,
+    'cruz azul':272, 'toluca':274, 'pumas unam':275, 'pumas':275,
+    'santos laguna':278, 'santos':278, 'puebla':273, 'necaxa':282,
+    'monterrey':285, 'pachuca':284, 'atlas':1920, 'leon':2696,
+    'tigres uanl':3996, 'tigres':3996, 'tijuana':3999, 'xolos':3999,
+    'queretaro':3998, 'fc juarez':5769, 'juarez':5769,
+    'mazatlan fc':6449, 'mazatlan':6449,
+    'atletico san luis':6377, 'atletico sl':6377, 'san luis':6377,
+  };
   // 1. Nombre completo
-  if (_NI[k]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[k]}.png`;
+  if (ids[k] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[k] + '.png';
+  // 2. Primera palabra
+  const w0 = k.split(' ')[0];
+  if (ids[w0] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[w0] + '.png';
+  // 3. Dos primeras palabras
+  const w01 = k.split(' ').slice(0,2).join(' ');
+  if (ids[w01] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[w01] + '.png';
+  // 4. Substring match
+  const keys = Object.keys(ids);
+  for (let i = 0; i < keys.length; i++) {
+    if (k.indexOf(keys[i]) !== -1) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[keys[i]] + '.png';
+  }
+  return null;
+}.png`;
   // 2. Primera palabra
   const w = k.split(' ');
   if (_NI[w[0]]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[w[0]]}.png`;
