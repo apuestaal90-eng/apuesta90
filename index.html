@@ -193,11 +193,11 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
 @keyframes parr{from{transform:translateX(0)}to{transform:translateX(6px)}}
 
 /* Normal header */
-.n-header{position:relative;z-index:10;text-align:center;padding:20px 16px 10px;}
-.back-btn{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+.n-header{position:relative;z-index:10;text-align:center;padding:16px 16px 10px;}
+.back-btn{display:inline-block;
   background:rgba(255,100,0,.1);border:1px solid rgba(255,100,0,.3);color:var(--fire3);
   padding:7px 14px;border-radius:6px;cursor:pointer;font-family:'Bebas Neue',cursive;
-  font-size:13px;letter-spacing:2px;transition:all .2s;}
+  font-size:13px;letter-spacing:2px;transition:all .2s;margin-bottom:10px;}
 .back-btn:hover{background:rgba(255,100,0,.2);}
 .jornada-badge{display:inline-block;font-family:'Bebas Neue',cursive;font-size:clamp(12px,2.5vw,16px);
   letter-spacing:4px;color:var(--gold);background:rgba(255,120,0,.12);
@@ -349,7 +349,7 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
 .e-panel{display:none;padding-top:4px;}
 .e-panel.active{display:block;}
 
-.e-partidos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:13px;}
+.e-partidos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;}
 .e-match-card{background:linear-gradient(145deg,rgba(201,168,60,.05),rgba(0,0,0,.48));
   border:1px solid rgba(201,168,60,.13);border-radius:6px;padding:17px 15px;
   position:relative;overflow:hidden;transition:all .25s;}
@@ -420,14 +420,21 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
 .e-loading{text-align:center;padding:46px 20px;font-family:'Cinzel',serif;font-size:15px;letter-spacing:4px;color:rgba(201,168,60,.28);}
 .e-last-update{text-align:right;font-size:9px;color:rgba(201,168,60,.2);padding-top:11px;letter-spacing:1px;font-family:'Cinzel',serif;}
 
-@media(max-width:600px){
+@media(max-width:640px){
   .land-cards{flex-direction:column;align-items:center;}
-  .lcard{width:100%;max-width:318px;}
-  .e-tab,.n-tab-btn{padding:10px 12px;font-size:9px;letter-spacing:1px;}
+  .lcard{width:100%;max-width:340px;}
+  .e-tab,.n-tab-btn{padding:10px 10px;font-size:9px;letter-spacing:1px;}
   .e-stats-bar{flex-wrap:wrap;}
   .e-back-btn,.back-btn{font-size:10px;padding:6px 10px;}
   .partidos-grid,.e-partidos-grid{grid-template-columns:1fr;}
   .modal-box{padding:26px 16px 20px;}
+  .n-header{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .jornada-badge{margin:0;}
+  .e-header-inner{flex-direction:column;gap:8px;}
+  .e-stats-bar .e-stat{min-width:70px;padding:10px 8px;}
+  .e-stat-val{font-size:15px;}
+  .score-box{font-size:26px;}
+  .n-tabs-wrap,.n-tabs-body{margin-left:4px;margin-right:4px;}
 }
 </style>
 </head>
@@ -472,11 +479,16 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
 
     <div class="lcard lcard-e" onclick="goTo('elite')">
       <div class="lcard-inner">
-        <div class="lcard-badge">⭐ Lanzamiento Exclusivo</div>
+        <div class="lcard-badge">👑 ACCESO RESTRINGIDO · 10 LUGARES</div>
         <div class="lcard-icon">🏆</div>
         <div class="lcard-title">APUESTA AL</div>
         <div class="lcard-num">90</div>
         <span class="lcard-elite">ÉLITE</span>
+        <div class="lcard-desc" style="margin-top:10px;font-size:12px;color:rgba(255,215,0,.55);line-height:1.6">
+          Solo <strong style="color:#FFD700">10 lugares</strong> disponibles por jornada.<br>
+          Bolsa garantizada entre los mejores.<br>
+          Cuando se llenen los 10, se cierra el acceso.
+        </div>
         <div class="lcard-price">🔒 $330 pesos por quiniela</div>
         <div class="lcard-stats">
           <div class="lcard-stat-row"><span class="lcard-stat-label">Jornada actual</span><span class="lcard-stat-val" id="l-e-jornada">—</span></div>
@@ -527,9 +539,9 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
   <header class="n-header">
     <button class="back-btn" onclick="goTo('landing')">← INICIO</button>
     <div class="jornada-badge" id="n-jornada-lbl">⚽ JORNADA —</div><br/>
-    <button class="btn-quiniela" onclick="nAbrirModal()">
-      ⚽ Registra tu Quiniela <span class="btn-arrow">→</span>
-    </button>
+    <a id="n-link-form" href="https://docs.google.com/forms/d/1UR95nctbNmC2qWnpsPVMSnk76YTYpN_ahQew5HQEaBA/viewform" target="_blank" class="btn-quiniela">
+      ⚽ REGISTRA TU QUINIELA <span class="btn-arrow">→</span>
+    </a>
   </header>
 
   <!-- Tabs Normal -->
@@ -565,14 +577,12 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
   <div class="e-header">
     <div class="e-header-glow"></div>
     <div class="e-header-inner">
-      <button class="e-back-btn" onclick="goTo('landing')">← Inicio</button>
       <div class="e-logo">
         <span class="e-logo-top">⭐ Lanzamiento Exclusivo ⭐</span>
         <span class="e-logo-mid">APUESTA AL</span>
         <span class="e-logo-num">90</span>
         <span class="e-logo-elite">ÉLITE</span>
       </div>
-      <div style="width:90px"></div>
     </div>
     <div class="e-exclusivo">EXCLUSIVO</div>
   </div>
@@ -585,6 +595,17 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
     <div class="e-stat"><span class="e-stat-val" id="e-finalizados">—</span><span class="e-stat-lbl">Finalizados</span></div>
   </div>
 
+  <div style="text-align:center;padding:14px 16px 4px;">
+    <button class="e-back-btn" onclick="goTo('landing')" style="position:static;transform:none;margin-right:12px">← Inicio</button>
+    <a id="e-link-form" href="https://docs.google.com/forms/d/1rtXvPiJKf_waGSwQCAbmrnp-cM07DEyDYZtz0HLBp7s/viewform" target="_blank"
+      style="display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+        font-family:'Cinzel',serif;font-size:13px;font-weight:700;letter-spacing:2px;
+        color:#0A0800;background:linear-gradient(135deg,#C9A83C,#8B6914,#C9A83C);
+        border:1px solid #FFD700;border-radius:4px;padding:11px 28px;
+        box-shadow:0 0 22px rgba(255,215,0,.35);transition:all .25s;">
+      ⭐ REGISTRA TU QUINIELA ÉLITE →
+    </a>
+  </div>
   <div class="e-nav">
     <div class="e-tab active" onclick="eTab('partidos',this)">⚽ Partidos</div>
     <div class="e-tab" onclick="eTab('ranking',this)">🏆 Ranking</div>
@@ -728,8 +749,50 @@ function scEL(e) {
   if (s==='post' || s.includes('final')) return '✅ Finalizado';
   return '⏳ Pendiente';
 }
-const safeLogo = (url, alt) =>
-  `<img class="team-logo" src="${url||''}" alt="${alt||''}" onerror="this.style.opacity='.12'">`;
+// Mapa de escudos fijos de Liga MX (siempre disponibles)
+const ESCUDOS = {
+  'america':         'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
+  'américas':        'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
+  'chivas':          'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
+  'guadalajara':     'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
+  'cruz azul':       'https://a.espncdn.com/i/teamlogos/soccer/500/272.png',
+  'pumas unam':      'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
+  'pumas':           'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
+  'tigres uanl':     'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
+  'tigres':          'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
+  'monterrey':       'https://a.espncdn.com/i/teamlogos/soccer/500/285.png',
+  'atlas':           'https://a.espncdn.com/i/teamlogos/soccer/500/2697.png',
+  'toluca':          'https://a.espncdn.com/i/teamlogos/soccer/500/274.png',
+  'santos':          'https://a.espncdn.com/i/teamlogos/soccer/500/2697.png',
+  'santos laguna':   'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
+  'pachuca':         'https://a.espncdn.com/i/teamlogos/soccer/500/284.png',
+  'léon':            'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
+  'leon':            'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
+  'tijuana':         'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
+  'fc juárez':       'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'fc juarez':       'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'mazatlán fc':     'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'mazatlan fc':     'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'mazatlán':        'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'necaxa':          'https://a.espncdn.com/i/teamlogos/soccer/500/282.png',
+  'querétaro':       'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
+  'queretaro':       'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
+  'atlético san luis':'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atlético sl':     'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atletico sl':     'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atletico san luis':'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'puebla':          'https://a.espncdn.com/i/teamlogos/soccer/500/273.png',
+};
+function getLogo(url, nombre) {
+  if (url && url.startsWith('http')) return url;
+  const k = (nombre||'').toLowerCase().trim();
+  return ESCUDOS[k] || ESCUDOS[k.split(' ')[0]] || '';
+}
+const safeLogo = (url, alt) => {
+  const src = getLogo(url, alt);
+  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.35">⚽</div>`;
+  return `<img class="team-logo" src="${src}" alt="${alt||''}" onerror="this.outerHTML='<div class=\'team-logo\' style=\'display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.35\'>⚽</div>'">`;
+};
 
 // ═══════════════════════════════════════════════
 //  NORMAL — MODAL
@@ -906,6 +969,11 @@ async function nLoadAll() {
   _nLoaded = true;
   const j = await fbGet('normal','jornada_numero'); 
   if(j) document.getElementById('n-jornada-lbl').textContent = '⚽ JORNADA ' + j;
+  // Update form link from Firebase config
+  try {
+    const cfg = await fbGet('normal','config');
+    if (cfg && cfg.formUrl) document.getElementById('n-link-form').href = cfg.formUrl;
+  } catch(e){}
   let np = {}, nq = {};
   const jaData = await fbGet('normal','jornada_actual');
   np = (jaData && jaData.partidos) ? jaData.partidos : (jaData || {});
@@ -1054,6 +1122,11 @@ async function eLoadAll() {
   _eLoaded = true;
   const j = await fbGet('elite','jornada_numero');
   if(j) document.getElementById('e-jornada-num').textContent = 'J' + j;
+  // Update form link from Firebase config
+  try {
+    const cfg = await fbGet('elite','config');
+    if (cfg && cfg.formUrl) document.getElementById('e-link-form').href = cfg.formUrl;
+  } catch(e){}
   let ep = {}, eq = {};
   const jaDataE = await fbGet('elite','jornada_actual');
   ep = (jaDataE && jaDataE.partidos) ? jaDataE.partidos : (jaDataE || {});
