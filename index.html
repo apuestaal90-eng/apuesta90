@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚽ Apuesta al 90</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --n-red:#D62828;--n-red2:#F93F3F;
+  --e-gold:#D4A017;--e-gold2:#F5C842;
+  --border:rgba(255,255,255,.10);--off:rgba(255,255,255,.06);
+}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:#060606;color:#fff;overflow-x:hidden}
+
+/* ── LANDING ────────────────────────────── */
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:radial-gradient(ellipse at 50% 0%,#1a0505 0%,#060606 70%)}
+.land-logo{font-family:'Oswald',sans-serif;font-size:clamp(36px,8vw,72px);font-weight:700;letter-spacing:-1px;text-align:center;line-height:1;margin-bottom:8px}
+.land-logo span{color:var(--n-red2)}
+.land-sub{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:56px}
+.land-cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;max-width:700px}
+.land-card{flex:1;min-width:280px;max-width:330px;border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s}
+.land-card:hover{transform:translateY(-6px)}
+.land-card.normal{background:linear-gradient(160deg,#1a0303,#0d0000);border:1px solid rgba(214,40,40,.3);box-shadow:0 8px 40px rgba(214,40,40,.12)}
+.land-card.normal:hover{box-shadow:0 16px 60px rgba(214,40,40,.28)}
+.land-card.elite{background:linear-gradient(160deg,#181400,#0d0900);border:1px solid rgba(212,160,23,.3);box-shadow:0 8px 40px rgba(212,160,23,.1)}
+.land-card.elite:hover{box-shadow:0 16px 60px rgba(212,160,23,.25)}
+.lc-head{padding:26px 26px 18px;border-bottom:1px solid var(--border)}
+.lc-mode{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.lc-mode.n{color:var(--n-red2)}.lc-mode.e{color:var(--e-gold2)}
+.lc-dot{width:6px;height:6px;border-radius:50%}.lc-dot.n{background:var(--n-red2)}.lc-dot.e{background:var(--e-gold2)}
+.lc-title{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700}
+.lc-price{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;letter-spacing:1px;padding:4px 12px;border-radius:100px}
+.lc-price.n{background:rgba(214,40,40,.15);color:var(--n-red2)}.lc-price.e{background:rgba(212,160,23,.13);color:var(--e-gold2)}
+.lc-body{padding:18px 26px 24px}
+.lc-stat{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.lc-stat:last-of-type{border-bottom:none}
+.lc-stat-lbl{font-size:12px;color:rgba(255,255,255,.4)}
+.lc-stat-val{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600}
+.lc-stat-val.n{color:var(--n-red2)}.lc-stat-val.e{color:var(--e-gold2)}
+.lc-btn{display:block;width:100%;margin-top:18px;padding:13px;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:filter .2s}
+.lc-btn.n{background:var(--n-red);color:#fff}.lc-btn.n:hover{filter:brightness(1.15)}
+.lc-btn.e{background:var(--e-gold);color:#000}.lc-btn.e:hover{filter:brightness(1.1)}
+.land-foot{margin-top:44px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.18)}
+
+/* ── DASHBOARD BASE ──────────────────────── */
+.dashboard{display:none;min-height:100vh;flex-direction:column}
+.dashboard.active{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:58px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(14px)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.back-btn{background:none;border:1px solid var(--border);color:rgba(255,255,255,.55);padding:5px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Barlow',sans-serif;letter-spacing:1px;transition:all .2s}
+.back-btn:hover{border-color:rgba(255,255,255,.35);color:#fff}
+.topbar-title{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600}
+.topbar-badge{font-size:10px;letter-spacing:2px;padding:3px 10px;border-radius:100px;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.35)}
+.upd-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.dash-body{flex:1;padding:22px;display:grid;gap:18px}
+.jbar{border-radius:13px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.jbar-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.5}
+.jbar-title{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;line-height:1}
+.jbar-meta{font-size:12px;opacity:.45;margin-top:2px}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{padding:10px 16px;border-radius:100px;border:1px solid var(--border);background:var(--off);display:flex;flex-direction:column;align-items:center;min-width:80px}
+.stat-v{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700}
+.stat-l{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;opacity:.45;margin-top:1px}
+.bolsa-bar{border-radius:13px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)}
+.bolsa-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.5;margin-bottom:4px}
+.bolsa-val{font-family:'Oswald',sans-serif;font-size:40px;font-weight:700;line-height:1}
+.bolsa-sub{font-size:12px;opacity:.35;margin-top:4px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.panel{border-radius:13px;background:var(--off);border:1px solid var(--border);overflow:hidden}
+.panel-hd{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-hdtxt{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.55}
+.panel-cnt{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600}
+
+/* Partidos */
+.match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.match:last-child{border-bottom:none}
+.mt{font-size:13px;font-weight:500}.mt.h{text-align:right}.mt.a{text-align:left}
+.ms{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;text-align:center;min-width:68px;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.06)}
+.mm{grid-column:1/-1;text-align:center;font-size:10px;opacity:.38;margin-top:2px;letter-spacing:1px}
+.live{color:#22c55e;font-size:10px;font-weight:700;letter-spacing:2px}
+.done{color:rgba(255,255,255,.28);font-size:10px;letter-spacing:2px}
+.soon{color:rgba(255,255,255,.38);font-size:10px;letter-spacing:2px}
+
+/* Ranking */
+.ritem{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ritem:last-child{border-bottom:none}
+.rpos{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;width:26px;text-align:center;flex-shrink:0}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:11px;opacity:.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpts{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;flex-shrink:0}
+.rpts-l{font-size:9px;opacity:.35;text-align:right;letter-spacing:1px}
+.rmedal{font-size:18px;flex-shrink:0}
+
+.empty{padding:40px;text-align:center;opacity:.3}
+.empty-ic{font-size:34px;margin-bottom:8px}
+.empty-tx{font-size:13px;letter-spacing:1px}
+
+/* Normal theme */
+#dash-normal{background:radial-gradient(ellipse at 50% -10%,rgba(180,10,10,.1) 0%,#060606 60%)}
+#dash-normal .topbar{background:rgba(13,0,0,.82)}
+#dash-normal .topbar-badge{background:rgba(214,40,40,.18);color:var(--n-red2)}
+#dash-normal .jbar{background:linear-gradient(135deg,rgba(180,10,10,.13),rgba(0,0,0,.3));border:1px solid rgba(214,40,40,.18)}
+#dash-normal .stat-v,#dash-normal .panel-cnt,#dash-normal .rpts,#dash-normal .rpos{color:var(--n-red2)}
+#dash-normal .bolsa-bar{background:linear-gradient(135deg,rgba(180,10,10,.1),rgba(0,0,0,.3));border-color:rgba(214,40,40,.22)}
+#dash-normal .bolsa-val{color:var(--n-red2)}
+
+/* Elite theme */
+#dash-elite{background:radial-gradient(ellipse at 50% -10%,rgba(120,90,0,.12) 0%,#060606 60%)}
+#dash-elite .topbar{background:rgba(8,6,0,.88)}
+#dash-elite .topbar-badge{background:rgba(212,160,23,.14);color:var(--e-gold2)}
+#dash-elite .topbar-title{color:var(--e-gold2)}
+#dash-elite .jbar{background:linear-gradient(135deg,rgba(120,90,0,.13),rgba(0,0,0,.3));border:1px solid rgba(212,160,23,.18)}
+#dash-elite .stat-v,#dash-elite .panel-cnt,#dash-elite .rpts,#dash-elite .rpos{color:var(--e-gold2)}
+#dash-elite .bolsa-bar{background:linear-gradient(135deg,rgba(120,90,0,.13),rgba(0,0,0,.3));border-color:rgba(212,160,23,.22)}
+#dash-elite .bolsa-val{color:var(--e-gold2)}
+#dash-elite .upd-dot{background:var(--e-gold2)}
+
+@media(max-width:580px){
+  .land-cards{flex-direction:column;align-items:center}
+  .land-card{max-width:100%}
+  .grid2{grid-template-columns:1fr}
+  .bolsa-val{font-size:32px}
+  .stats{gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<section id="landing">
+  <h1 class="land-logo">APUESTA<span>&nbsp;AL&nbsp;90</span></h1>
+  <p class="land-sub">Liga MX · Quiniela Semanal</p>
+
+  <div class="land-cards">
+    <div class="land-card normal" onclick="openDash('normal')">
+      <div class="lc-head">
+        <div class="lc-mode n"><div class="lc-dot n"></div>Modalidad</div>
+        <div class="lc-title">Normal</div>
+        <div class="lc-price n">$50 por quiniela</div>
+      </div>
+      <div class="lc-body">
+        <div class="lc-stat"><span class="lc-stat-lbl">Jornada actual</span><span class="lc-stat-val n" id="lj-n">—</span></div>
+        <div class="lc-stat"><span class="lc-stat-lbl">Participantes</span><span class="lc-stat-val n" id="lp-n">—</span></div>
+        <div class="lc-stat"><span class="lc-stat-lbl">Bolsa</span><span class="lc-stat-val n" id="lb-n">—</span></div>
+        <button class="lc-btn n">Ver Dashboard →</button>
+      </div>
+    </div>
+
+    <div class="land-card elite" onclick="openDash('elite')">
+      <div class="lc-head">
+        <div class="lc-mode e"><div class="lc-dot e"></div>Modalidad</div>
+        <div class="lc-title">Élite ⭐</div>
+        <div class="lc-price e">$330 por quiniela</div>
+      </div>
+      <div class="lc-body">
+        <div class="lc-stat"><span class="lc-stat-lbl">Jornada actual</span><span class="lc-stat-val e" id="lj-e">—</span></div>
+        <div class="lc-stat"><span class="lc-stat-lbl">Participantes</span><span class="lc-stat-val e" id="lp-e">—</span></div>
+        <div class="lc-stat"><span class="lc-stat-lbl">Bolsa</span><span class="lc-stat-val e" id="lb-e">—</span></div>
+        <button class="lc-btn e">Ver Dashboard →</button>
+      </div>
+    </div>
+  </div>
+  <div class="land-foot">Liga MX · Actualización automática</div>
+</section>
+
+<!-- DASH NORMAL -->
+<section id="dash-normal" class="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="closeDash()">← Inicio</button>
+      <span class="topbar-title">Apuesta al 90</span>
+      <span class="topbar-badge">Normal</span>
+    </div>
+    <div class="topbar-right"><div class="upd-dot"></div><span id="upd-n">—</span></div>
+  </div>
+  <div class="dash-body">
+    <div class="jbar">
+      <div>
+        <div class="jbar-num">Jornada</div>
+        <div class="jbar-title" id="n-jnum">—</div>
+        <div class="jbar-meta">Liga MX · $50 por quiniela</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="stat-v" id="n-spart">—</span><span class="stat-l">Jugadores</span></div>
+        <div class="stat"><span class="stat-v" id="n-smatch">—</span><span class="stat-l">Partidos</span></div>
+      </div>
+    </div>
+    <div class="bolsa-bar">
+      <div>
+        <div class="bolsa-lbl">Bolsa acumulada</div>
+        <div class="bolsa-val" id="n-bolsa">$0</div>
+        <div class="bolsa-sub" id="n-bolsa-sub">0 quinielas × $50</div>
+      </div>
+      <div style="font-size:48px">💰</div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-hdtxt">Partidos de la jornada</span><span class="panel-cnt" id="n-mcnt">0</span></div>
+        <div id="n-matches"><div class="empty"><div class="empty-ic">⚽</div><div class="empty-tx">Cargando…</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-hdtxt">Ranking</span><span class="panel-cnt" id="n-rcnt">0</span></div>
+        <div id="n-ranking"><div class="empty"><div class="empty-ic">🏆</div><div class="empty-tx">Sin datos aún</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASH ELITE -->
+<section id="dash-elite" class="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="closeDash()">← Inicio</button>
+      <span class="topbar-title">Apuesta al 90 Élite</span>
+      <span class="topbar-badge">⭐ Élite</span>
+    </div>
+    <div class="topbar-right"><div class="upd-dot"></div><span id="upd-e">—</span></div>
+  </div>
+  <div class="dash-body">
+    <div class="jbar">
+      <div>
+        <div class="jbar-num">Jornada</div>
+        <div class="jbar-title" id="e-jnum">—</div>
+        <div class="jbar-meta">Liga MX · $330 por quiniela · Modalidad Élite</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="stat-v" id="e-spart">—</span><span class="stat-l">Jugadores</span></div>
+        <div class="stat"><span class="stat-v" id="e-smatch">—</span><span class="stat-l">Partidos</span></div>
+      </div>
+    </div>
+    <div class="bolsa-bar">
+      <div>
+        <div class="bolsa-lbl">Bolsa acumulada</div>
+        <div class="bolsa-val" id="e-bolsa">$0</div>
+        <div class="bolsa-sub" id="e-bolsa-sub">0 quinielas × $330</div>
+      </div>
+      <div style="font-size:48px">💎</div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-hdtxt">Partidos de la jornada</span><span class="panel-cnt" id="e-mcnt">0</span></div>
+        <div id="e-matches"><div class="empty"><div class="empty-ic">⚽</div><div class="empty-tx">Cargando…</div></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><span class="panel-hdtxt">Ranking Élite</span><span class="panel-cnt" id="e-rcnt">0</span></div>
+        <div id="e-ranking"><div class="empty"><div class="empty-ic">🏆</div><div class="empty-tx">Sin datos aún</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const FB     = 'https://apuesta-al-90-15300-default-rtdb.firebaseio.com';
+const PRECIO = {normal:50, elite:330};
+const MEDALS = ['🥇','🥈','🥉'];
+let curMode  = null, itvl = {};
+
+function openDash(m){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('dash-'+m).classList.add('active');
+  curMode=m; load(m);
+  itvl[m]=setInterval(()=>load(m),60000);
+}
+function closeDash(){
+  if(curMode){document.getElementById('dash-'+curMode).classList.remove('active');clearInterval(itvl[curMode]);curMode=null;}
+  document.getElementById('landing').style.display='flex';
+}
+
+async function fb(path){
+  try{const r=await fetch(FB+path+'.json');return r.ok?await r.json():null;}catch{return null;}
+}
+
+async function loadLanding(){
+  for(const m of['normal','elite']){
+    const s=m==='normal'?'n':'e';
+    const[j,rk]=await Promise.all([fb('/'+m+'/jornada_numero'),fb('/'+m+'/ranking')]);
+    const cnt=rk?Object.keys(rk).length:0;
+    const bolsa=cnt*PRECIO[m];
+    document.getElementById('lj-'+s).textContent=j||'—';
+    document.getElementById('lp-'+s).textContent=cnt||'—';
+    document.getElementById('lb-'+s).textContent=bolsa>0?'$'+bolsa.toLocaleString('es-MX'):'—';
+  }
+}
+
+async function load(m){
+  const p=m==='normal'?'n':'e';
+  const now=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  const[j,parts,rk]=await Promise.all([
+    fb('/'+m+'/jornada_numero'),
+    fb('/'+m+'/jornada_actual/partidos'),
+    fb('/'+m+'/ranking')
+  ]);
+  document.getElementById(p+'-jnum').textContent=j||'—';
+  document.getElementById('upd-'+p).textContent='Act. '+now;
+  const rkList=rk?Object.values(rk):[];
+  const cnt=rkList.length;
+  const bolsa=cnt*PRECIO[m];
+  document.getElementById(p+'-spart').textContent=cnt;
+  document.getElementById(p+'-bolsa').textContent='$'+(bolsa>0?bolsa.toLocaleString('es-MX'):'0');
+  document.getElementById(p+'-bolsa-sub').textContent=cnt+' quiniela'+(cnt!==1?'s':'')+' × $'+PRECIO[m];
+  renderMatches(p,parts);
+  renderRanking(p,rkList);
+  loadLanding();
+}
+
+function renderMatches(p,parts){
+  const el=document.getElementById(p+'-matches');
+  const cn=document.getElementById(p+'-mcnt');
+  document.getElementById(p+'-smatch').textContent=parts?Object.keys(parts).length:0;
+  if(!parts||!Object.keys(parts).length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">⚽</div><div class="empty-tx">Sin partidos cargados</div></div>';
+    cn.textContent='0';return;
+  }
+  const list=Object.values(parts);
+  cn.textContent=list.length;
+  el.innerHTML=list.map(p=>{
+    const st=(p.status||'').toLowerCase();
+    const fin=st.includes('final')||st.includes('ft')||st.includes('terminado')||st.includes('post');
+    const live=st.includes('in')||st.includes('live')||st.includes('vivo')||st.includes('progress');
+    const gL=p.golesL!=null?p.golesL:'', gV=p.golesV!=null?p.golesV:'';
+    const score=(gL!==''&&gV!=='')?gL+' — '+gV:(p.marcador||'—');
+    const min=p.minuto?p.minuto+"'":"";
+    let st_html=live?`<span class="live">🔴 EN VIVO ${min}</span>`:fin?`<span class="done">✅ FINAL</span>`:`<span class="soon">📅 ${p.fecha||''} ${p.hora||''}</span>`;
+    return`<div class="match"><div class="mt h">${p.local||''}</div><div class="ms">${score}</div><div class="mt a">${p.visita||''}</div><div class="mm">${st_html}</div></div>`;
+  }).join('');
+}
+
+function renderRanking(p,lista){
+  const el=document.getElementById(p+'-ranking');
+  const cn=document.getElementById(p+'-rcnt');
+  if(!lista.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">🏆</div><div class="empty-tx">Sin quinielas aprobadas aún</div></div>';
+    cn.textContent='0';return;
+  }
+  const sorted=[...lista].sort((a,b)=>(b.puntos||0)-(a.puntos||0)||(b.aciertos||0)-(a.aciertos||0));
+  cn.textContent=sorted.length;
+  el.innerHTML=sorted.map((u,i)=>{
+    const medal=MEDALS[i]||'';
+    const alias=u.alias||u.nombre||'—';
+    const nombre=u.nombre||'';
+    const pts=u.puntos||0;
+    return`<div class="ritem">${medal?`<span class="rmedal">${medal}</span>`:`<span class="rpos">${i+1}</span>`}<div class="rinfo"><div class="rname">${alias}</div><div class="rsub">${nombre}</div></div><div><div class="rpts">${pts}</div><div class="rpts-l">pts</div></div></div>`;
+  }).join('');
+}
+
+loadLanding();
+setInterval(loadLanding,120000);
+</script>
+</body>
+</html>
