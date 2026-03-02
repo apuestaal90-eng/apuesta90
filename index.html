@@ -793,21 +793,37 @@ const ESCUDOS = {
   'juárez fc':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
 };
 
-// SIEMPRE busca por nombre — ignora URL de Firebase
-// (evita logos europeos de partidos de prueba)
+// Resuelve logo SIEMPRE por nombre — NUNCA usa URL de Firebase
+// Esto garantiza logos correctos aunque los partidos sean de prueba
 function getLogo(url, nombre) {
-  const k = (nombre||'').toLowerCase().trim();
-  // 1. Buscar por nombre completo
-  if (ESCUDOS[k]) return ESCUDOS[k];
-  // 2. Buscar por primera palabra (ej: "Atlas" de "Atlas FC")
-  const firstWord = k.split(' ')[0];
-  if (ESCUDOS[firstWord]) return ESCUDOS[firstWord];
-  // 3. Buscar por segunda palabra (ej: "América" de "Club América")
-  const words = k.split(' ');
-  if (words.length > 1 && ESCUDOS[words[1]]) return ESCUDOS[words[1]];
-  // 4. Solo usar URL de Firebase si es del dominio de ESPN y contiene Liga MX
-  if (url && url.includes('espncdn.com') && url.includes('soccer')) return url;
-  // 5. Ninguno encontrado → pelota genérica
+  const k = (nombre||'').toLowerCase().trim()
+    .normalize('NFD').replace(/[̀-ͯ]/g,''); // quita tildes
+  // Mapa SIN tildes para comparación robusta
+  const MATCH = {
+    'america':        262,  'chivas':          269,  'guadalajara':    269,
+    'cruz azul':      272,  'toluca':          274,  'pumas unam':     275,
+    'pumas':          275,  'santos laguna':   278,  'santos':         278,
+    'puebla':         273,  'necaxa':          282,  'monterrey':      285,
+    'pachuca':        284,  'atlas':           1920, 'leon':           2696,
+    'tigres uanl':    3996, 'tigres':          3996, 'tijuana':        3999,
+    'xolos':          3999, 'queretaro':       3998, 'fc juarez':      5769,
+    'juarez':         5769, 'mazatlan fc':     6449, 'mazatlan':       6449,
+    'atletico san luis':6377,'atletico sl':    6377, 'san luis':       6377,
+  };
+  // 1. Nombre completo sin tildes
+  if (MATCH[k] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[k]}.png`;
+  // 2. Primera palabra
+  const w0 = k.split(' ')[0];
+  if (MATCH[w0] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[w0]}.png`;
+  // 3. Dos primeras palabras
+  const w01 = k.split(' ').slice(0,2).join(' ');
+  if (MATCH[w01] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[w01]}.png`;
+  // 4. Busca si alguna clave del mapa aparece DENTRO del nombre
+  const keys = Object.keys(MATCH);
+  for (let i = 0; i < keys.length; i++) {
+    if (k.includes(keys[i])) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[keys[i]]}.png`;
+  }
+  // 5. NUNCA usa URL de Firebase — devuelve vacío para mostrar pelota
   return '';
 }
 
