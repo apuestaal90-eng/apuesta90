@@ -751,89 +751,53 @@ function scEL(e) {
   return '⏳ Pendiente';
 }
 // Mapa de escudos fijos de Liga MX (siempre disponibles)
-// ── Escudos Liga MX — IDs verificados de ESPN CDN ──────────────
-// SIEMPRE usa el nombre del equipo, ignora URL de Firebase
-// (Los partidos de prueba tienen URLs incorrectas de ESPN Europa)
-const ESCUDOS = {
-  'américa':           'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
-  'america':           'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
-  'chivas':            'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
-  'guadalajara':       'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
-  'cruz azul':         'https://a.espncdn.com/i/teamlogos/soccer/500/272.png',
-  'pumas unam':        'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
-  'pumas':             'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
-  'tigres uanl':       'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
-  'tigres':            'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
-  'monterrey':         'https://a.espncdn.com/i/teamlogos/soccer/500/285.png',
-  'atlas':             'https://a.espncdn.com/i/teamlogos/soccer/500/1920.png',
-  'toluca':            'https://a.espncdn.com/i/teamlogos/soccer/500/274.png',
-  'santos':            'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
-  'santos laguna':     'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
-  'pachuca':           'https://a.espncdn.com/i/teamlogos/soccer/500/284.png',
-  'león':              'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
-  'leon':              'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
-  'tijuana':           'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
-  'xolos':             'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
-  'fc juárez':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'fc juarez':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'juárez':            'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'juarez':            'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'mazatlán fc':       'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'mazatlan fc':       'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'mazatlán':          'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'mazatlan':          'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'necaxa':            'https://a.espncdn.com/i/teamlogos/soccer/500/282.png',
-  'querétaro':         'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
-  'queretaro':         'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
-  'atlético san luis': 'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atletico san luis': 'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atlético sl':       'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atletico sl':       'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'puebla':            'https://a.espncdn.com/i/teamlogos/soccer/500/273.png',
-  'juárez fc':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+// ── Logo resolver: nombre → ESPN CDN (nunca usa URL de Firebase) ──
+const LOGOS_MX = {
+  262:['america','américas'],
+  269:['chivas','guadalajara'],
+  272:['cruz azul'],
+  274:['toluca'],
+  275:['pumas unam','pumas'],
+  278:['santos','santos laguna'],
+  273:['puebla'],
+  282:['necaxa'],
+  285:['monterrey'],
+  284:['pachuca'],
+  1920:['atlas'],
+  2696:['leon','león'],
+  3996:['tigres uanl','tigres'],
+  3999:['tijuana','xolos'],
+  3998:['queretaro','querétaro'],
+  5769:['fc juarez','fc juárez','juarez','juárez'],
+  6449:['mazatlan fc','mazatlán fc','mazatlan','mazatlán'],
+  6377:['atletico san luis','atlético san luis','atletico sl','atlético sl','san luis'],
 };
+// Construir índice invertido nombre→id
+const _NI = {};
+Object.entries(LOGOS_MX).forEach(([id,names]) => names.forEach(n => _NI[n] = id));
 
-// Resuelve logo SIEMPRE por nombre — NUNCA usa URL de Firebase
-// Esto garantiza logos correctos aunque los partidos sean de prueba
-function getLogo(url, nombre) {
+function getLogo(nombre) {
   const k = (nombre||'').toLowerCase().trim()
     .normalize('NFD').replace(/[̀-ͯ]/g,''); // quita tildes
-  // Mapa SIN tildes para comparación robusta
-  const MATCH = {
-    'america':        262,  'chivas':          269,  'guadalajara':    269,
-    'cruz azul':      272,  'toluca':          274,  'pumas unam':     275,
-    'pumas':          275,  'santos laguna':   278,  'santos':         278,
-    'puebla':         273,  'necaxa':          282,  'monterrey':      285,
-    'pachuca':        284,  'atlas':           1920, 'leon':           2696,
-    'tigres uanl':    3996, 'tigres':          3996, 'tijuana':        3999,
-    'xolos':          3999, 'queretaro':       3998, 'fc juarez':      5769,
-    'juarez':         5769, 'mazatlan fc':     6449, 'mazatlan':       6449,
-    'atletico san luis':6377,'atletico sl':    6377, 'san luis':       6377,
-  };
-  // 1. Nombre completo sin tildes
-  if (MATCH[k] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[k]}.png`;
+  // 1. Nombre completo
+  if (_NI[k]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[k]}.png`;
   // 2. Primera palabra
-  const w0 = k.split(' ')[0];
-  if (MATCH[w0] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[w0]}.png`;
-  // 3. Dos primeras palabras
-  const w01 = k.split(' ').slice(0,2).join(' ');
-  if (MATCH[w01] !== undefined) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[w01]}.png`;
-  // 4. Busca si alguna clave del mapa aparece DENTRO del nombre
-  const keys = Object.keys(MATCH);
-  for (let i = 0; i < keys.length; i++) {
-    if (k.includes(keys[i])) return `https://a.espncdn.com/i/teamlogos/soccer/500/${MATCH[keys[i]]}.png`;
-  }
-  // 5. NUNCA usa URL de Firebase — devuelve vacío para mostrar pelota
-  return '';
+  const w = k.split(' ');
+  if (_NI[w[0]]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[w[0]]}.png`;
+  // 3. Primeras dos palabras
+  if (w.length > 1 && _NI[w.slice(0,2).join(' ')]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[w.slice(0,2).join(' ')]}.png`;
+  // 4. ¿Contiene alguna clave?
+  const hit = Object.keys(_NI).find(key => k.includes(key));
+  if (hit) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[hit]}.png`;
+  return null;
 }
 
-const safeLogo = (url, alt) => {
-  const src = getLogo(url, alt);
-  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.2">⚽</div>`;
-  return `<img class="team-logo" src="${src}" alt="${alt||''}"
-    onerror="this.outerHTML='<div class=\'team-logo\' style=\'display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.2\'>⚽</div>'">`;
-};
-
+function safeLogo(url, alt) {
+  // Siempre resuelve por nombre — ignora URL que venga de Firebase
+  const src = getLogo(alt) || null;
+  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.18">⚽</div>`;
+  return `<img class="team-logo" src="${src}" alt="${alt||''}" onerror="this.style.opacity='0.15'">`;
+}
 // ═══════════════════════════════════════════════
 //  NORMAL — MODAL
 // ═══════════════════════════════════════════════
