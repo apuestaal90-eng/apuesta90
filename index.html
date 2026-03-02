@@ -751,79 +751,26 @@ function scEL(e) {
   return '⏳ Pendiente';
 }
 // Mapa de escudos fijos de Liga MX (siempre disponibles)
-// ── Logo resolver: nombre → ESPN CDN (nunca usa URL de Firebase) ──
-const LOGOS_MX = {
-  262:['america','américas'],
-  269:['chivas','guadalajara'],
-  272:['cruz azul'],
-  274:['toluca'],
-  275:['pumas unam','pumas'],
-  278:['santos','santos laguna'],
-  273:['puebla'],
-  282:['necaxa'],
-  285:['monterrey'],
-  284:['pachuca'],
-  1920:['atlas'],
-  2696:['leon','león'],
-  3996:['tigres uanl','tigres'],
-  3999:['tijuana','xolos'],
-  3998:['queretaro','querétaro'],
-  5769:['fc juarez','fc juárez','juarez','juárez'],
-  6449:['mazatlan fc','mazatlán fc','mazatlan','mazatlán'],
-  6377:['atletico san luis','atlético san luis','atletico sl','atlético sl','san luis'],
-};
-// Construir índice invertido nombre→id
-const _NI = {};
-Object.entries(LOGOS_MX).forEach(([id,names]) => names.forEach(n => _NI[n] = id));
-
-function getLogo(nombre) {
-  if (!nombre) return null;
-  // Normaliza: minúsculas, sin tildes, sin espacios extra
-  let k = nombre.toLowerCase().trim();
-  k = k.replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
-       .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ü/g,'u');
-  // Buscar en mapa por coincidencia parcial
-  const ids = {
-    'america':262, 'chivas':269, 'guadalajara':269,
-    'cruz azul':272, 'toluca':274, 'pumas unam':275, 'pumas':275,
-    'santos laguna':278, 'santos':278, 'puebla':273, 'necaxa':282,
-    'monterrey':285, 'pachuca':284, 'atlas':1920, 'leon':2696,
-    'tigres uanl':3996, 'tigres':3996, 'tijuana':3999, 'xolos':3999,
-    'queretaro':3998, 'fc juarez':5769, 'juarez':5769,
-    'mazatlan fc':6449, 'mazatlan':6449,
-    'atletico san luis':6377, 'atletico sl':6377, 'san luis':6377,
-  };
-  // 1. Nombre completo
-  if (ids[k] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[k] + '.png';
-  // 2. Primera palabra
-  const w0 = k.split(' ')[0];
-  if (ids[w0] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[w0] + '.png';
-  // 3. Dos primeras palabras
-  const w01 = k.split(' ').slice(0,2).join(' ');
-  if (ids[w01] !== undefined) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[w01] + '.png';
-  // 4. Substring match
-  const keys = Object.keys(ids);
-  for (let i = 0; i < keys.length; i++) {
-    if (k.indexOf(keys[i]) !== -1) return 'https://a.espncdn.com/i/teamlogos/soccer/500/' + ids[keys[i]] + '.png';
-  }
-  return null;
-}.png`;
-  // 2. Primera palabra
-  const w = k.split(' ');
-  if (_NI[w[0]]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[w[0]]}.png`;
-  // 3. Primeras dos palabras
-  if (w.length > 1 && _NI[w.slice(0,2).join(' ')]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[w.slice(0,2).join(' ')]}.png`;
-  // 4. ¿Contiene alguna clave?
-  const hit = Object.keys(_NI).find(key => k.includes(key));
-  if (hit) return `https://a.espncdn.com/i/teamlogos/soccer/500/${_NI[hit]}.png`;
-  return null;
-}
-
+// ── Logo resolver: nombre → ESPN CDN ──────────────────────────
 function safeLogo(url, alt) {
-  // Siempre resuelve por nombre — ignora URL que venga de Firebase
-  const src = getLogo(alt) || null;
-  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.18">⚽</div>`;
-  return `<img class="team-logo" src="${src}" alt="${alt||''}" onerror="this.style.opacity='0.15'">`;
+  if (!alt) return '<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.2">⚽</div>';
+  var k = alt.toLowerCase().trim();
+  k = k.replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u');
+  var ids = {
+    'america':262,'chivas':269,'guadalajara':269,'cruz azul':272,'toluca':274,
+    'pumas unam':275,'pumas':275,'santos laguna':278,'santos':278,'puebla':273,
+    'necaxa':282,'monterrey':285,'pachuca':284,'atlas':1920,'leon':2696,
+    'tigres uanl':3996,'tigres':3996,'tijuana':3999,'xolos':3999,'queretaro':3998,
+    'fc juarez':5769,'juarez':5769,'mazatlan fc':6449,'mazatlan':6449,
+    'atletico san luis':6377,'atletico sl':6377,'san luis':6377,
+  };
+  var id = ids[k];
+  if (!id) { var w=k.split(' '); id=ids[w[0]]; }
+  if (!id && k.split(' ').length>1) { id=ids[k.split(' ').slice(0,2).join(' ')]; }
+  if (!id) { var ks=Object.keys(ids); for(var i=0;i<ks.length;i++){if(k.indexOf(ks[i])!==-1){id=ids[ks[i]];break;}} }
+  if (!id) return '<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.2">⚽</div>';
+  var src = 'https://a.espncdn.com/i/teamlogos/soccer/500/'+id+'.png';
+  return '<img class="team-logo" src="'+src+'" alt="'+(alt||'')+'" onerror="this.style.opacity='0.2'">';
 }
 // ═══════════════════════════════════════════════
 //  NORMAL — MODAL
