@@ -361,9 +361,10 @@ body{background:#080200;color:#fff;font-family:'Rajdhani',sans-serif;min-height:
 .e-status-live{color:#FF6A00;animation:blink 1s infinite;}
 .e-status-pend{color:rgba(255,255,255,.22);}
 .e-teams-row{display:flex;align-items:center;justify-content:space-between;gap:7px;}
-.e-team{flex:1;}
-.e-team-name{font-family:'Cinzel',serif;font-size:11px;color:rgba(255,255,255,.78);line-height:1.3;}
-.e-team.away{text-align:right;}
+.e-team{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.e-team-name{font-family:'Cinzel',serif;font-size:11px;color:rgba(255,255,255,.78);line-height:1.3;margin-top:4px;}
+.e-team.away{align-items:center;text-align:center;}
+.e-team .team-logo{width:44px;height:44px;}
 .e-score-box{background:rgba(0,0,0,.48);border:1px solid rgba(201,168,60,.16);
   padding:7px 13px;border-radius:3px;text-align:center;min-width:54px;}
 .e-score{font-family:'Cinzel Decorative',serif;font-size:21px;color:var(--eg1);font-weight:900;
@@ -750,48 +751,71 @@ function scEL(e) {
   return '⏳ Pendiente';
 }
 // Mapa de escudos fijos de Liga MX (siempre disponibles)
+// ── Escudos Liga MX — IDs verificados de ESPN CDN ──────────────
+// SIEMPRE usa el nombre del equipo, ignora URL de Firebase
+// (Los partidos de prueba tienen URLs incorrectas de ESPN Europa)
 const ESCUDOS = {
-  'america':         'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
-  'américas':        'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
-  'chivas':          'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
-  'guadalajara':     'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
-  'cruz azul':       'https://a.espncdn.com/i/teamlogos/soccer/500/272.png',
-  'pumas unam':      'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
-  'pumas':           'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
-  'tigres uanl':     'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
-  'tigres':          'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
-  'monterrey':       'https://a.espncdn.com/i/teamlogos/soccer/500/285.png',
-  'atlas':           'https://a.espncdn.com/i/teamlogos/soccer/500/2697.png',
-  'toluca':          'https://a.espncdn.com/i/teamlogos/soccer/500/274.png',
-  'santos':          'https://a.espncdn.com/i/teamlogos/soccer/500/2697.png',
-  'santos laguna':   'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
-  'pachuca':         'https://a.espncdn.com/i/teamlogos/soccer/500/284.png',
-  'léon':            'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
-  'leon':            'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
-  'tijuana':         'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
-  'fc juárez':       'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'fc juarez':       'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
-  'mazatlán fc':     'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'mazatlan fc':     'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'mazatlán':        'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
-  'necaxa':          'https://a.espncdn.com/i/teamlogos/soccer/500/282.png',
-  'querétaro':       'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
-  'queretaro':       'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
-  'atlético san luis':'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atlético sl':     'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atletico sl':     'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'atletico san luis':'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
-  'puebla':          'https://a.espncdn.com/i/teamlogos/soccer/500/273.png',
+  'américa':           'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
+  'america':           'https://a.espncdn.com/i/teamlogos/soccer/500/262.png',
+  'chivas':            'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
+  'guadalajara':       'https://a.espncdn.com/i/teamlogos/soccer/500/269.png',
+  'cruz azul':         'https://a.espncdn.com/i/teamlogos/soccer/500/272.png',
+  'pumas unam':        'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
+  'pumas':             'https://a.espncdn.com/i/teamlogos/soccer/500/275.png',
+  'tigres uanl':       'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
+  'tigres':            'https://a.espncdn.com/i/teamlogos/soccer/500/3996.png',
+  'monterrey':         'https://a.espncdn.com/i/teamlogos/soccer/500/285.png',
+  'atlas':             'https://a.espncdn.com/i/teamlogos/soccer/500/1920.png',
+  'toluca':            'https://a.espncdn.com/i/teamlogos/soccer/500/274.png',
+  'santos':            'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
+  'santos laguna':     'https://a.espncdn.com/i/teamlogos/soccer/500/278.png',
+  'pachuca':           'https://a.espncdn.com/i/teamlogos/soccer/500/284.png',
+  'león':              'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
+  'leon':              'https://a.espncdn.com/i/teamlogos/soccer/500/2696.png',
+  'tijuana':           'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
+  'xolos':             'https://a.espncdn.com/i/teamlogos/soccer/500/3999.png',
+  'fc juárez':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'fc juarez':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'juárez':            'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'juarez':            'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
+  'mazatlán fc':       'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'mazatlan fc':       'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'mazatlán':          'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'mazatlan':          'https://a.espncdn.com/i/teamlogos/soccer/500/6449.png',
+  'necaxa':            'https://a.espncdn.com/i/teamlogos/soccer/500/282.png',
+  'querétaro':         'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
+  'queretaro':         'https://a.espncdn.com/i/teamlogos/soccer/500/3998.png',
+  'atlético san luis': 'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atletico san luis': 'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atlético sl':       'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'atletico sl':       'https://a.espncdn.com/i/teamlogos/soccer/500/6377.png',
+  'puebla':            'https://a.espncdn.com/i/teamlogos/soccer/500/273.png',
+  'juárez fc':         'https://a.espncdn.com/i/teamlogos/soccer/500/5769.png',
 };
+
+// SIEMPRE busca por nombre — ignora URL de Firebase
+// (evita logos europeos de partidos de prueba)
 function getLogo(url, nombre) {
-  if (url && url.startsWith('http')) return url;
   const k = (nombre||'').toLowerCase().trim();
-  return ESCUDOS[k] || ESCUDOS[k.split(' ')[0]] || '';
+  // 1. Buscar por nombre completo
+  if (ESCUDOS[k]) return ESCUDOS[k];
+  // 2. Buscar por primera palabra (ej: "Atlas" de "Atlas FC")
+  const firstWord = k.split(' ')[0];
+  if (ESCUDOS[firstWord]) return ESCUDOS[firstWord];
+  // 3. Buscar por segunda palabra (ej: "América" de "Club América")
+  const words = k.split(' ');
+  if (words.length > 1 && ESCUDOS[words[1]]) return ESCUDOS[words[1]];
+  // 4. Solo usar URL de Firebase si es del dominio de ESPN y contiene Liga MX
+  if (url && url.includes('espncdn.com') && url.includes('soccer')) return url;
+  // 5. Ninguno encontrado → pelota genérica
+  return '';
 }
+
 const safeLogo = (url, alt) => {
   const src = getLogo(url, alt);
-  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.35">⚽</div>`;
-  return `<img class="team-logo" src="${src}" alt="${alt||''}" onerror="this.outerHTML='<div class=\'team-logo\' style=\'display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.35\'>⚽</div>'">`;
+  if (!src) return `<div class="team-logo" style="display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.2">⚽</div>`;
+  return `<img class="team-logo" src="${src}" alt="${alt||''}"
+    onerror="this.outerHTML='<div class=\'team-logo\' style=\'display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.2\'>⚽</div>'">`;
 };
 
 // ═══════════════════════════════════════════════
@@ -1011,11 +1035,17 @@ function eRenderPartidos(data) {
     return `<div class="e-match-card" style="${isLive?'border-color:rgba(255,106,0,.35)':''}">
       <div class="e-mstatus ${sc}">${sl}${p.minuto?" · "+p.minuto+"'":''}</div>
       <div class="e-teams-row">
-        <div class="e-team"><div class="e-team-name">${p.local||'—'}</div></div>
+        <div class="e-team">
+          ${safeLogo(p.logoL||'', p.local)}
+          <div class="e-team-name">${p.local||'—'}</div>
+        </div>
         <div class="e-score-box" style="${isLive?'border-color:rgba(255,106,0,.28)':''}">
           <div class="e-score" style="${isLive?'color:#FF6A00':''}">${isLive||isFin?gL+' <span style="color:var(--eg3)"> - </span> '+gV:'<span style="opacity:.18">—</span>'}</div>
         </div>
-        <div class="e-team away"><div class="e-team-name">${p.visita||'—'}</div></div>
+        <div class="e-team away">
+          ${safeLogo(p.logoV||'', p.visita)}
+          <div class="e-team-name">${p.visita||'—'}</div>
+        </div>
       </div>
       <div class="e-match-time">${p.fecha||''} ${p.hora&&!isFin?'· '+p.hora:''}</div>
     </div>`;
